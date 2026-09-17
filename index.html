@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dashboard Vanessa Rodrigues</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js para o Gráfico de Finanças -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --primary: #8B0046;
+      --primary-dark: #660033;
+      --primary-light: #A30052;
+      --accent: #FFB3D9;
+      --bg-app: #FAF7F8;
+      --bg-card: #FFFFFF;
+      --text-dark: #2B2226;
+      --text-muted: #7A6B72;
+      --border-color: #F0E6EA;
+      --success: #2E7D32;
+      --shadow: 0 8px 24px rgba(139, 0, 70, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #121212;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Simulation Wrapper for Mobile */
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      max-height: 932px;
+      background-color: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+
+    @media (min-width: 450px) {
+      .app-container {
+        height: 90vh;
+        border-radius: 36px;
+        border: 8px solid #2B2226;
+      }
+    }
+
+    /* Top Navigation Header */
+    .app-header {
+      padding: 20px 24px 12px;
+      background: var(--bg-card);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 10;
+    }
+
+    .app-header h1 {
+      font-size: 22px;
+      color: var(--primary);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .profile-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      border: 2px solid #FFF;
+      box-shadow: 0 4px 12px rgba(139, 0, 70, 0.25);
+      cursor: pointer;
+    }
+
+    /* Main Scrollable View */
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      padding-bottom: 90px;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: var(--bg-card);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid var(--border-color);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      width: 20%;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item i {
+      font-size: 20px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+
+    /* Card Component */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    .section-title {
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Modals & Full Overlay Screens */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-end;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      width: 100%;
+      max-height: 85vh;
+      border-radius: 28px 28px 0 0;
+      padding: 24px;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      color: var(--primary);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .btn-close {
+      background: #F4EFF2;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--text-dark);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Inputs & Buttons */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .form-control, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #FFF;
+      color: var(--text-dark);
+    }
+
+    .form-control:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(139, 0, 70, 0.2);
+    }
+
+    /* View Specific Styles */
+    .tab-view {
+      display: none;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    /* Calendar Grid */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .cal-day-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding-bottom: 6px;
+    }
+
+    .cal-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      background: #FAF7F8;
+      border: 1px solid transparent;
+    }
+
+    .cal-cell.today {
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .cal-cell.selected {
+      background: var(--primary);
+      color: white;
+    }
+
+    .cal-cell .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 50%;
+      position: absolute;
+      bottom: 4px;
+    }
+
+    .cal-cell.selected .dot {
+      background: white;
+    }
+
+    /* Badges & Tags */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #FDF0F5;
+      color: var(--primary);
+    }
+
+    .badge-success {
+      background: #E8F5E9;
+      color: var(--success);
+    }
+
+    /* List Item Cards */
+    .item-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: #FAF7F8;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    /* Accordion Menu */
+    .accordion-item {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      padding: 14px 16px;
+      background: #FFF;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .accordion-content {
+      padding: 14px 16px;
+      background: #FAF7F8;
+      font-size: 13px;
+      border-top: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .accordion-item.active .accordion-content {
+      display: block;
+    }
+
+    /* Progress bar */
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #EAE3E7;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Profile view specific */
+    .profile-info-group {
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-info-group:last-child {
+      border-bottom: none;
+    }
+
+    .profile-info-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .profile-info-value {
+      font-size: 14px;
+      color: var(--text-dark);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat-card {
+      background: #FAF7F8;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Rest / Recovery Special Cards */
+    .card-rest {
+      background: linear-gradient(135deg, #FFF0F5, #FAF7F8);
+      border: 1px dashed var(--primary-light);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .card-rest i {
+      font-size: 32px;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Menu Superior Header -->
+    <header class="app-header">
+      <h1>Olá, Vanessa!</h1>
+      <div class="profile-btn" onclick="openModal('modal-profile')">VR</div>
+    </header>
+
+    <!-- Conteúdo das Abas (Navegável) -->
+    <main class="app-content">
+      
+      <!-- ABA #1: AGENDA -->
+      <section id="tab-agenda" class="tab-view active">
+        <div class="card">
+          <div class="calendar-header">
+            <h3 id="agenda-month-year" class="section-title" style="margin-bottom:0;">
+              <i class="fa-regular fa-calendar-days"></i> Janeiro 2026
+            </h3>
+            <div>
+              <button class="btn-close" onclick="changeMonth('agenda', -1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-close" onclick="changeMonth('agenda', 1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+
+          <div class="calendar-grid" id="agenda-grid-header">
+            <div class="cal-day-label">D</div>
+            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">T</div>
+            <div class="cal-day-label">Q</div>
+            <div class="cal-day-label">Q</div>
+            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">S</div>
+          </div>
+          <div class="calendar-grid" id="agenda-calendar-grid"></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 class="section-title" style="margin:0;"><i class="fa-solid fa-list-check"></i> Compromissos</h3>
+            <span class="badge" id="selected-date-badge">Selecione um dia</span>
+          </div>
+          <div id="agenda-events-list">
+            <p style="text-align:center; color: var(--text-muted); font-size: 13px; padding: 10px;">
+              Clique em um dia no calendário acima para ver ou criar compromissos.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA #2: TREINOS -->
+      <section id="tab-treinos" class="tab-view">
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino do Dia</div>
+          <div class="form-group">
+            <label>Selecione o Dia da Semana</label>
+            <select id="workout-day-select" onchange="loadWorkoutDetails()">
+              <option value="0">Segunda-feira</option>
+              <option value="1">Terça-feira</option>
+              <option value="2">Quarta-feira</option>
+              <option value="3">Quinta-feira</option>
+              <option value="4">Sexta-feira</option>
+              <option value="5">Sábado</option>
+              <option value="6">Domingo</option>
+            </select>
+          </div>
+          <div id="workout-display-container"></div>
+        </div>
+
+        <!-- Calendário de Registro de Treinos -->
+        <div class="card">
+          <div class="calendar-header">
+            <h3 id="workout-month-year" class="section-title" style="margin:0;"><i class="fa-solid fa-calendar-check"></i> Registro 2026</h3>
+            <div>
+              <button class="btn-close" onclick="changeMonth('workout', -1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn-close" onclick="changeMonth('workout', 1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="calendar-grid">
+            <div class="cal-day-label">D</div>
+            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">T</div>
+            <div class="cal-day-label">Q</div>
+            <div class="cal-day-label">Q</div>
+            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">S</div>
+          </div>
+          <div class="calendar-grid" id="workout-calendar-grid"></div>
+
+          <div style="margin-top: 15px; text-align: center;">
+            <button class="btn-primary" id="btn-toggle-workout" onclick="toggleWorkoutCompletion()">
+              <i class="fa-solid fa-check-circle"></i> Marcar Treino Concluído
+            </button>
+          </div>
+        </div>
+
+        <!-- Estatísticas e Streak -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-fire"></i> Desempenho & Recordes</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="workout-streak">0 🔥</div>
+              <div class="stat-label">Dias Seguidos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="workout-record">0 🏆</div>
+              <div class="stat-label">Maior Recorde</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA #3: DIETA -->
+      <section id="tab-dieta" class="tab-view">
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-utensils"></i> Plano Alimentar Diário</div>
+          <p style="font-size:12px; color: var(--text-muted); margin-bottom: 14px;">
+            Consulte abaixo as opções de refeições planejadas para o seu dia a dia.
+          </p>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>☕ Café da Manhã</span> <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="accordion-content">
+              <p><strong>Opção 1:</strong> 2 Fatias de pão integral e 2 ovos.</p>
+              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
+              <p><strong>Opção 2:</strong> Iogurte natural + 1 fruta + Aveia.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🥗 Almoço</span> <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="accordion-content">
+              <p>Arroz, feijão, carne ou frango, salada fresca, 1 opção de legume.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🍎 Lanche da Tarde</span> <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="accordion-content">
+              <p>Frutas variadas à sua escolha.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🍲 Jantar</span> <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="accordion-content">
+              <p><strong>Opção 1:</strong> Arroz + 1 proteína + salada.</p>
+              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
+              <p><strong>Opção 2:</strong> Omelete e salada completa.</p>
+              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
+              <p><strong>Opção 3:</strong> Sopas leves.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span>🍓 Sobremesas</span> <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="accordion-content">
+              <p>• Gelatina</p>
+              <p>• Frutas frescas ou aquecidas com canela</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA #4: ESPIRITUAL -->
+      <section id="tab-espiritual" class="tab-view">
+        <div class="card" style="text-align:center; background: linear-gradient(180deg, #FFF, #FAF4F7);">
+          <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-cross"></i></div>
+          <h2 style="color:var(--primary); font-size:18px; font-weight:800; margin-top:4px;" id="rosary-day-title">Mistérios de Hoje</h2>
+          <p id="rosary-subtitle" style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">-</p>
+
+          <div class="form-group" style="text-align:left;">
+            <label><i class="fa-solid fa-hands-praying"></i> Minha Intenção de hoje</label>
+            <input type="text" id="rosary-intention-input" class="form-control" placeholder="Escreva sua intenção para esta oração..." />
+          </div>
+
+          <button class="btn-primary" onclick="startRosaryMode()">
+            <i class="fa-solid fa-book-open"></i> INICIAR ROSÁRIO
+          </button>
+        </div>
+
+        <!-- Progresso e Cards dos Mistérios -->
+        <div class="card">
+          <div class="section-title" style="justify-content:space-between;">
+            <span><i class="fa-solid fa-rosary"></i> Acompanhamento</span>
+            <span class="badge" id="rosary-progress-badge">0/5</span>
+          </div>
+          
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="rosary-progress-bar"></div>
+          </div>
+
+          <div id="mysteries-cards-container" style="margin-top:14px;"></div>
+        </div>
+
+        <!-- Seção Minha Constância & Histórico -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-chart-line"></i> Minha Constância</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="rosary-total-count">0</div>
+              <div class="stat-label">Rosários Concluídos</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="rosary-streak">0 🔥</div>
+              <div class="stat-label">Dias Consecutivos</div>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:20px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Oração</div>
+          <div id="rosary-history-list" style="max-height: 200px; overflow-y: auto;">
+            <p style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">Nenhuma oração registrada ainda.</p>
+          </div>
+        </div>
+
+        <!-- Calendário Semanal Espiritual -->
+        <div class="card">
+          <div class="section-title"><i class="fa-regular fa-calendar"></i> Guia Semanal dos Mistérios</div>
+          <div style="font-size:12px;" id="spiritual-weekly-schedule">
+            <div class="item-card"><span><strong>Segunda:</strong> Gozosos</span> <i class="fa-solid fa-dove" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Terça:</strong> Dolorosos</span> <i class="fa-solid fa-cross" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Quarta:</strong> Gloriosos</span> <i class="fa-solid fa-crown" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Quinta:</strong> Luminosos</span> <i class="fa-solid fa-sun" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Sexta:</strong> Dolorosos</span> <i class="fa-solid fa-cross" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Sábado:</strong> Gozosos</span> <i class="fa-solid fa-rose" style="color:var(--primary);"></i></div>
+            <div class="item-card"><span><strong>Domingo:</strong> Gloriosos</span> <i class="fa-solid fa-crown" style="color:var(--primary);"></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA #5: FINANÇAS -->
+      <section id="tab-financas" class="tab-view">
+        <div class="card">
+          <div class="form-group">
+            <label>Mês de Referência (2026)</label>
+            <select id="finance-month-select" onchange="loadFinanceData()">
+              <option value="0">Janeiro 2026</option>
+              <option value="1">Fevereiro 2026</option>
+              <option value="2">Março 2026</option>
+              <option value="3">Abril 2026</option>
+              <option value="4">Maio 2026</option>
+              <option value="5">Junho 2026</option>
+              <option value="6">Julho 2026</option>
+              <option value="7">Agosto 2026</option>
+              <option value="8">Setembro 2026</option>
+              <option value="9">Outubro 2026</option>
+              <option value="10">Novembro 2026</option>
+              <option value="11">Dezembro 2026</option>
+            </select>
+          </div>
+
+          <!-- Resumo Dashboard Financeiro -->
+          <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap:6px;">
+            <div class="stat-card" style="padding:8px;">
+              <div class="stat-value" style="font-size:13px; color:var(--success);" id="fin-total-in">R$ 0</div>
+              <div class="stat-label" style="font-size:9px;">Ganhos</div>
+            </div>
+            <div class="stat-card" style="padding:8px;">
+              <div class="stat-value" style="font-size:13px; color:#D32F2F;" id="fin-total-out">R$ 0</div>
+              <div class="stat-label" style="font-size:9px;">Gastos</div>
+            </div>
+            <div class="stat-card" style="padding:8px;">
+              <div class="stat-value" style="font-size:13px;" id="fin-total-balance">R$ 0</div>
+              <div class="stat-label" style="font-size:9px;">Sobra</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entradas (Ganhos) -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-wallet" style="color:var(--success);"></i> Ganhos do Mês</div>
+          <div class="form-group">
+            <label>Adiantamento Salarial</label>
+            <input type="number" id="fin-in-adiantamento" class="form-control" value="1700" onchange="saveFinanceData()" />
+          </div>
+          <div class="form-group">
+            <label>Salário</label>
+            <input type="number" id="fin-in-salario" class="form-control" value="2400" onchange="saveFinanceData()" />
+          </div>
+        </div>
+
+        <!-- Saídas (Contas e Gastos) -->
+        <div class="card">
+          <div class="section-title" style="justify-content:space-between;">
+            <span><i class="fa-solid fa-receipt" style="color:#D32F2F;"></i> Gastos & Contas</span>
+            <button class="badge" onclick="openModal('modal-add-expense')" style="border:none; cursor:pointer;">+ Adicionar</button>
+          </div>
+          <div id="finance-expenses-list"></div>
+        </div>
+
+        <!-- Gráfico Comparativo -->
+        <div class="card">
+          <div class="section-title"><i class="fa-solid fa-chart-pie"></i> Balanço Visual</div>
+          <div style="position: relative; height:200px;">
+            <canvas id="financeChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchTab('agenda')">
+        <i class="fa-regular fa-calendar"></i>
+        <span>Agenda</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('treinos')">
+        <i class="fa-solid fa-dumbbell"></i>
+        <span>Treinos</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('dieta')">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Dieta</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('espiritual')">
+        <i class="fa-solid fa-cross"></i>
+        <span>Espiritual</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('financas')">
+        <i class="fa-solid fa-wallet"></i>
+        <span>Finanças</span>
+      </button>
+    </nav>
+
+    <!-- MODAL: PERFIL DO USUÁRIO -->
+    <div id="modal-profile" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Meu Perfil</h2>
+          <button class="btn-close" onclick="closeModal('modal-profile')">✕</button>
+        </div>
+
+        <div style="text-align:center; margin-bottom:20px;">
+          <div class="profile-btn" style="width:70px; height:70px; font-size:24px; margin:0 auto 10px;">VR</div>
+          <h3 style="color:var(--text-dark); font-size:18px;">Vanessa Rodrigues</h3>
+        </div>
+
+        <div class="profile-info-group">
+          <div class="profile-info-label">Data de Nascimento</div>
+          <div class="profile-info-value">08/05/1999</div>
+        </div>
+        <div class="profile-info-group">
+          <div class="profile-info-label">Endereço</div>
+          <div class="profile-info-value">Avenida Aricanduva 2621 - Vila Matilde</div>
+        </div>
+        <div class="profile-info-group">
+          <div class="profile-info-label">Telefone</div>
+          <div class="profile-info-value">(11) 94823-5412</div>
+        </div>
+        <div class="profile-info-group">
+          <div class="profile-info-label">E-mail Pessoal</div>
+          <div class="profile-info-value">vannessa.roodrigues13@gmail.com</div>
+        </div>
+        <div class="profile-info-group">
+          <div class="profile-info-label">E-mail Corporativo</div>
+          <div class="profile-info-value">vanessa@brmobility.com</div>
+        </div>
+
+        <div style="margin-top:20px; padding:14px; background:#FFF0F5; border-radius:14px; border:1px solid var(--accent);">
+          <div class="profile-info-label" style="color:var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Contato de Emergência</div>
+          <div class="profile-info-value" style="font-weight:700;">Flavia Ribeiro (Irmã)</div>
+          <div class="profile-info-value" style="font-size:13px; margin-top:2px;">(11) 99304-2115</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CRIAR COMPROMISSO -->
+    <div id="modal-add-event" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Novo Compromisso</h2>
+          <button class="btn-close" onclick="closeModal('modal-add-event')">✕</button>
+        </div>
+        <form onsubmit="saveNewEvent(event)">
+          <div class="form-group">
+            <label>Título do Compromisso</label>
+            <input type="text" id="event-title" class="form-control" placeholder="Ex: Reunião de Trabalho" required />
+          </div>
+          <div class="form-group">
+            <label>Horário</label>
+            <input type="time" id="event-time" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Duração</label>
+            <input type="text" id="event-duration" class="form-control" placeholder="Ex: 1 hora, 30 min" required />
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:10px;">Salvar Compromisso</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ORAR AGORA (MODO GUIADO DO TERÇO) -->
+    <div id="modal-rosary-guided" class="modal-overlay">
+      <div class="modal-card" style="text-align:center; max-height:90vh;">
+        <div class="modal-header">
+          <span class="badge" id="guided-mystery-step">Mistério 1 de 5</span>
+          <button class="btn-close" onclick="closeModal('modal-rosary-guided')">✕</button>
+        </div>
+        
+        <div style="padding: 20px 0;">
+          <i class="fa-solid fa-rosary" style="font-size:36px; color:var(--primary); margin-bottom:12px;"></i>
+          <h3 id="guided-mystery-title" style="color:var(--primary); font-size:20px; font-weight:800; margin-bottom:10px;">-</h3>
+          <p id="guided-mystery-desc" style="font-size:15px; color:var(--text-dark); line-height:1.5;">-</p>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn-primary" style="background:#E0D0D8; color:var(--text-dark);" onclick="navigateGuidedMystery(-1)">ANTERIOR</button>
+          <button class="btn-primary" onclick="navigateGuidedMystery(1)">PRÓXIMO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: ADICIONAR DESPESA -->
+    <div id="modal-add-expense" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Novo Gasto</h2>
+          <button class="btn-close" onclick="closeModal('modal-add-expense')">✕</button>
+        </div>
+        <form onsubmit="saveNewExpense(event)">
+          <div class="form-group">
+            <label>Nome do Gasto / Conta</label>
+            <input type="text" id="exp-name" class="form-control" placeholder="Ex: Mercado, Farmácia" required />
+          </div>
+          <div class="form-group">
+            <label>Valor (R$)</label>
+            <input type="number" step="0.01" id="exp-amount" class="form-control" placeholder="0.00" required />
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:10px;">Adicionar Gasto</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT LÓGICO PRINCIPAL DO DASHBOARD -->
+  <script>
+    /* ==========================================================================
+       DADOS GLOBAIS E ESTADOS
+       ========================================================================== */
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    
+    // Estado do App
+    let currentAgendaMonth = 0; // 0 = Jan 2026
+    let currentAgendaYear = 2026;
+    let selectedAgendaDateStr = "2026-01-01";
+
+    let currentWorkoutMonth = 0;
+    let currentWorkoutYear = 2026;
+    let selectedWorkoutDateStr = "2026-01-01";
+
+    let currentFinanceMonth = 0;
+
+    // Estruturas de Banco de Dados Local (localStorage)
+    let appData = {
+      events: JSON.parse(localStorage.getItem('vr_events')) || {},
+      completedWorkouts: JSON.parse(localStorage.getItem('vr_workouts')) || [],
+      rosaryHistory: JSON.parse(localStorage.getItem('vr_rosary_history')) || [],
+      rosaryProgress: JSON.parse(localStorage.getItem('vr_rosary_progress')) || {},
+      finances: JSON.parse(localStorage.getItem('vr_finances')) || {}
+    };
+
+    /* Treinos pré-definidos */
+    const workoutsData = {
+      0: {
+        title: "Glúteo Máximo & Posterior",
+        desc: "Foco em Força e Carga • 55–65 min",
+        exercises: [
+          "Elevação Pélvica (Barra/Máq) — 4x8–12 — 2s no topo",
+          "Agachamento Búlgaro — 3x10–12",
+          "Bom Dia / Good Morning — 4x10–12",
+          "Cadeira Flexora — 4x12–15",
+          "Glúteo Caneleira/Polia — 3x12–15"
+        ]
+      },
+      1: {
+        title: "Costas • Bíceps • Ombros",
+        desc: "Definição do Tronco + Cardio",
+        exercises: [
+          "Puxada Alta Aberta — 4x10–12",
+          "Remada Baixa Triângulo — 3x12",
+          "Desenvolvimento Halteres — 3x12",
+          "Elevação Lateral — 4x12–15",
+          "Rosca Bíceps — 4x12–15",
+          "Cardio — 25–30 min"
+        ]
+      },
+      2: {
+        title: "Quadríceps & Glúteo Médio",
+        desc: "Foco em Pernas e Lateral do Glúteo",
+        exercises: [
+          "Agachamento Halter (Goblet) — 4x10–12",
+          "Leg Press 45° — 3x10–12",
+          "Cadeira Extensora — 3x12–15",
+          "Cadeira Abdutora — 4x15–20",
+          "Abdução no Cabo — 3x12–15",
+          "Cardio Bike — 25–30 min"
+        ]
+      },
+      3: {
+        title: "Costas • Braços • Core",
+        desc: "Escultura de Tronco e Abdômen",
+        exercises: [
+          "Puxada Triângulo — 4x10–12",
+          "Remada Unilateral (Serrote) — 3x12",
+          "Face Pull com Corda — 3x15",
+          "Tríceps Pulley + Rosca Direta — 3x12",
+          "Prancha Abdominal — 3x45–60s",
+          "Abdominal Infra — 3x15–20",
+          "Cardio — 25–30 min"
+        ]
+      },
+      4: {
+        isRest: true,
+        title: "Descanso Ativo & Recuperação",
+        desc: "Recuperação Muscular Direcionada",
+        exercises: [
+          "Alongamentos Leves",
+          "Mobilidade de Quadril",
+          "Hidratação Adicional",
+          "Sono reparador"
+        ]
+      },
+      5: {
+        title: "Glúteo Pump & Posterior",
+        desc: "Modelagem e Exaustão Muscular",
+        exercises: [
+          "Elevação Pélvica Unilateral — 3x12",
+          "Levantamento Terra Sumô — 4x10",
+          "Passada Caminhando — 3x20 passos",
+          "Cadeira Flexora — 3x12–15",
+          "Cadeira Abdutora — 3x20 — Dropset"
+        ]
+      },
+      6: {
+        isRest: true,
+        title: "Descanso Total & Planejamento",
+        desc: "Preparação para a Próxima Semana",
+        exercises: [
+          "Resumo semanal de conquistas",
+          "Organização do Meal Prep / Marmitas",
+          "Relaxamento e Descanso"
+        ]
+      }
+    };
+
+    /* Mistérios do Terço por dia da semana */
+    const mysteriesData = {
+      0: { name: "Mistérios Gozosos", items: [
+        "1. A Anunciação do Anjo Gabriel a Maria.",
+        "2. A Visitação de Maria a Santa Isabel.",
+        "3. O Nascimento de Jesus em Belém.",
+        "4. A Apresentação do Menino Jesus no Templo.",
+        "5. O Encontro do Menino Jesus entre os Doutores da Lei."
+      ]},
+      1: { name: "Mistérios Dolorosos", items: [
+        "1. A Agonia de Jesus no Horto das Oliveiras.",
+        "2. A Flagelação de Jesus.",
+        "3. A Coroação de Espinhos.",
+        "4. Jesus carrega a Cruz até o Calvário.",
+        "5. A Crucificação e Morte de Jesus."
+      ]},
+      2: { name: "Mistérios Gloriosos", items: [
+        "1. A Ressurreição de Jesus.",
+        "2. A Ascensão de Jesus ao Céu.",
+        "3. A Vinda do Espírito Santo em Pentecostes.",
+        "4. A Assunção de Maria ao Céu.",
+        "5. A Coroação de Maria como Rainha do Céu e da Terra."
+      ]},
+      3: { name: "Mistérios Luminosos", items: [
+        "1. O Batismo de Jesus no Rio Jordão.",
+        "2. A Auto-revelação de Jesus nas Bodas de Caná.",
+        "3. O Anúncio do Reino de Deus e o Convite à Conversão.",
+        "4. A Transfiguração de Jesus no Monte Tabor.",
+        "5. A Instituição da Eucaristia na Última Ceia."
+      ]},
+      4: { name: "Mistérios Dolorosos", items: [
+        "1. A Agonia de Jesus no Horto das Oliveiras.",
+        "2. A Flagelação de Jesus.",
+        "3. A Coroação de Espinhos.",
+        "4. Jesus carrega a Cruz até o Calvário.",
+        "5. A Crucificação e Morte de Jesus."
+      ]},
+      5: { name: "Mistérios Gozosos", items: [
+        "1. A Anunciação do Anjo Gabriel a Maria.",
+        "2. A Visitação de Maria a Santa Isabel.",
+        "3. O Nascimento de Jesus em Belém.",
+        "4. A Apresentação do Menino Jesus no Templo.",
+        "5. O Encontro do Menino Jesus entre os Doutores da Lei."
+      ]},
+      6: { name: "Mistérios Gloriosos", items: [
+        "1. A Ressurreição de Jesus.",
+        "2. A Ascensão de Jesus ao Céu.",
+        "3. A Vinda do Espírito Santo em Pentecostes.",
+        "4. A Assunção de Maria ao Céu.",
+        "5. A Coroação de Maria como Rainha do Céu e da Terra."
+      ]}
+    };
+
+    let currentGuidedStep = 0;
+    let financeChartInstance = null;
+
+    /* ==========================================================================
+       INICIALIZAÇÃO DO SISTEMA
+       ========================================================================== */
+    window.onload = function() {
+      renderAgendaCalendar();
+      renderWorkoutCalendar();
+      loadWorkoutDetails();
+      loadRosaryTab();
+      loadFinanceData();
+    };
+
+    function saveStorage(key, val) {
+      localStorage.setItem(key, JSON.stringify(val));
+    }
+
+    /* Navegação por Abas */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    /* Modais */
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    /* Accordion Menu */
+    function toggleAccordion(headerEl) {
+      const item = headerEl.parentElement;
+      item.classList.toggle('active');
+    }
+
+    /* ==========================================================================
+       LÓGICA DA ABA #1: AGENDA (2026)
+       ========================================================================== */
+    function renderAgendaCalendar() {
+      document.getElementById('agenda-month-year').innerText = `${monthNames[currentAgendaMonth]} ${currentAgendaYear}`;
+      const grid = document.getElementById('agenda-calendar-grid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(currentAgendaYear, currentAgendaMonth, 1).getDay();
+      const daysInMonth = new Date(currentAgendaYear, currentAgendaMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.appendChild(document.createElement('div'));
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        cell.innerText = day;
+
+        const dateStr = `${currentAgendaYear}-${String(currentAgendaMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        if (dateStr === selectedAgendaDateStr) cell.classList.add('selected');
+        if (appData.events[dateStr] && appData.events[dateStr].length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          cell.appendChild(dot);
+        }
+
+        cell.onclick = () => {
+          selectedAgendaDateStr = dateStr;
+          renderAgendaCalendar();
+          renderAgendaEvents();
+        };
+
+        grid.appendChild(cell);
+      }
+      renderAgendaEvents();
+    }
+
+    function renderAgendaEvents() {
+      const listContainer = document.getElementById('agenda-events-list');
+      document.getElementById('selected-date-badge').innerText = selectedAgendaDateStr;
+      listContainer.innerHTML = '';
+
+      const events = appData.events[selectedAgendaDateStr] || [];
+
+      if (events.length === 0) {
+        listContainer.innerHTML = `
+          <p style="text-align:center; color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Nenhum compromisso marcado.</p>
+          <button class="btn-primary" onclick="openModal('modal-add-event')"><i class="fa-solid fa-plus"></i> Novo Compromisso</button>
+        `;
+        return;
+      }
+
+      events.forEach((ev, idx) => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.innerHTML = `
+          <div>
+            <strong style="color:var(--primary); font-size:14px;">${ev.title}</strong>
+            <div style="font-size:12px; color:var(--text-muted);">${ev.time} (${ev.duration})</div>
+          </div>
+          <button style="border:none; background:none; color:#D32F2F; cursor:pointer;" onclick="deleteEvent(${idx})"><i class="fa-solid fa-trash"></i></button>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-primary';
+      addBtn.style.marginTop = '10px';
+      addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Outro';
+      addBtn.onclick = () => openModal('modal-add-event');
+      listContainer.appendChild(addBtn);
+    }
+
+    function saveNewEvent(e) {
+      e.preventDefault();
+      const title = document.getElementById('event-title').value;
+      const time = document.getElementById('event-time').value;
+      const duration = document.getElementById('event-duration').value;
+
+      if (!appData.events[selectedAgendaDateStr]) appData.events[selectedAgendaDateStr] = [];
+      appData.events[selectedAgendaDateStr].push({ title, time, duration });
+
+      saveStorage('vr_events', appData.events);
+      closeModal('modal-add-event');
+      document.getElementById('event-title').value = '';
+      renderAgendaCalendar();
+    }
+
+    function deleteEvent(idx) {
+      appData.events[selectedAgendaDateStr].splice(idx, 1);
+      saveStorage('vr_events', appData.events);
+      renderAgendaCalendar();
+    }
+
+    function changeMonth(type, dir) {
+      if (type === 'agenda') {
+        currentAgendaMonth += dir;
+        if (currentAgendaMonth < 0) { currentAgendaMonth = 11; currentAgendaYear--; }
+        if (currentAgendaMonth > 11) { currentAgendaMonth = 0; currentAgendaYear++; }
+        renderAgendaCalendar();
+      } else if (type === 'workout') {
+        currentWorkoutMonth += dir;
+        if (currentWorkoutMonth < 0) { currentWorkoutMonth = 11; currentWorkoutYear--; }
+        if (currentWorkoutMonth > 11) { currentWorkoutMonth = 0; currentWorkoutYear++; }
+        renderWorkoutCalendar();
+      }
+    }
+
+    /* ==========================================================================
+       LÓGICA DA ABA #2: TREINOS
+       ========================================================================== */
+    function loadWorkoutDetails() {
+      const dayIdx = document.getElementById('workout-day-select').value;
+      const workout = workoutsData[dayIdx];
+      const container = document.getElementById('workout-display-container');
+
+      if (workout.isRest) {
+        container.innerHTML = `
+          <div class="card-rest">
+            <i class="fa-solid fa-bed"></i>
+            <h4 style="color:var(--primary); font-size:16px;">${workout.title}</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">${workout.desc}</p>
+            <ul style="list-style:none; text-align:left; font-size:13px;">
+              ${workout.exercises.map(ex => `<li style="padding:4px 0;"><i class="fa-solid fa-leaf" style="color:var(--primary);"></i> ${ex}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <strong style="color:var(--primary); font-size:15px;">${workout.title}</strong>
+            <p style="font-size:12px; color:var(--text-muted);">${workout.desc}</p>
+          </div>
+          <div style="background:#FAF7F8; padding:12px; border-radius:12px;">
+            <ul style="list-style:none; font-size:13px;">
+              ${workout.exercises.map(ex => `<li style="padding:6px 0; border-bottom:1px solid #EAE0E5;"><i class="fa-solid fa-angle-right" style="color:var(--primary);"></i> ${ex}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+    }
+
+    function renderWorkoutCalendar() {
+      document.getElementById('workout-month-year').innerText = `${monthNames[currentWorkoutMonth]} ${currentWorkoutYear}`;
+      const grid = document.getElementById('workout-calendar-grid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(currentWorkoutYear, currentWorkoutMonth, 1).getDay();
+      const daysInMonth = new Date(currentWorkoutYear, currentWorkoutMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        cell.innerText = day;
+
+        const dateStr = `${currentWorkoutYear}-${String(currentWorkoutMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        if (dateStr === selectedWorkoutDateStr) cell.classList.add('selected');
+        if (appData.completedWorkouts.includes(dateStr)) {
+          cell.style.background = '#E8F5E9';
+          cell.style.color = '#2E7D32';
+          cell.style.fontWeight = 'bold';
+        }
+
+        cell.onclick = () => {
+          selectedWorkoutDateStr = dateStr;
+          // Atualiza o menu suspenso para o dia correspondente da semana
+          const dateObj = new Date(currentWorkoutYear, currentWorkoutMonth, day);
+          let jsDay = dateObj.getDay(); // 0 = Domingo
+          let convertedDay = jsDay === 0 ? 6 : jsDay - 1; // Ajusta Segunda = 0
+          document.getElementById('workout-day-select').value = convertedDay;
+          loadWorkoutDetails();
+          renderWorkoutCalendar();
+        };
+
+        grid.appendChild(cell);
+      }
+
+      // Atualiza estado do botão de marcação
+      const btn = document.getElementById('btn-toggle-workout');
+      if (appData.completedWorkouts.includes(selectedWorkoutDateStr)) {
+        btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Concluído! (Clique para desmarcar)';
+        btn.style.background = 'var(--success)';
+      } else {
+        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Marcar Treino Concluído';
+        btn.style.background = 'linear-gradient(135deg, var(--primary-light), var(--primary))';
+      }
+
+      calculateWorkoutStreak();
+    }
+
+    function toggleWorkoutCompletion() {
+      const idx = appData.completedWorkouts.indexOf(selectedWorkoutDateStr);
+      if (idx > -1) {
+        appData.completedWorkouts.splice(idx, 1);
+      } else {
+        appData.completedWorkouts.push(selectedWorkoutDateStr);
+      }
+      saveStorage('vr_workouts', appData.completedWorkouts);
+      renderWorkoutCalendar();
+    }
+
+    function calculateWorkoutStreak() {
+      const sorted = [...appData.completedWorkouts].sort();
+      let currentStreak = sorted.length > 0 ? 1 : 0;
+      let maxStreak = currentStreak;
+
+      for (let i = 1; i < sorted.length; i++) {
+        const prev = new Date(sorted[i-1]);
+        const curr = new Date(sorted[i]);
+        const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          currentStreak++;
+        } else if (diffDays > 1) {
+          currentStreak = 1;
+        }
+        if (currentStreak > maxStreak) maxStreak = currentStreak;
+      }
+
+      document.getElementById('workout-streak').innerText = `${currentStreak} 🔥`;
+      document.getElementById('workout-record').innerText = `${maxStreak} 🏆`;
+    }
+
+    /* ==========================================================================
+       LÓGICA DA ABA #4: ESPIRITUAL (SANTO TERÇO)
+       ========================================================================== */
+    function loadRosaryTab() {
+      const todayJS = new Date().getDay();
+      let convertedDay = todayJS === 0 ? 6 : todayJS - 1;
+      const todayMystery = mysteriesData[convertedDay];
+
+      document.getElementById('rosary-day-title').innerText = todayMystery.name;
+      document.getElementById('rosary-subtitle').innerText = `Mistérios a contemplar hoje`;
+
+      renderRosaryMysteryCards(todayMystery);
+      renderRosaryStats();
+    }
+
+    function renderRosaryMysteryCards(mysteryObj) {
+      const container = document.getElementById('mysteries-cards-container');
+      container.innerHTML = '';
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const completedList = appData.rosaryProgress[todayStr] || [];
+
+      mysteryObj.items.forEach((mText, idx) => {
+        const isDone = completedList.includes(idx);
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.style.marginBottom = '10px';
+        card.style.border = isDone ? '1px solid var(--success)' : '1px solid var(--border-color)';
+
+        card.innerHTML = `
+          <div style="flex:1;">
+            <strong style="color:var(--primary); font-size:13px;">${idx + 1}º Mistério</strong>
+            <p style="font-size:13px; color:var(--text-dark);">${mText.replace(/^\d+\.\s*/, '')}</p>
+          </div>
+          <button style="border:none; background:none; font-size:20px; color:${isDone ? 'var(--success)' : '#CCC'}; cursor:pointer;" onclick="toggleMysteryDone(${idx})">
+            <i class="fa-solid ${isDone ? 'fa-circle-check' : 'fa-circle'}"></i>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+
+      // Atualiza barra de progresso
+      const progressPercent = (completedList.length / 5) * 100;
+      document.getElementById('rosary-progress-bar').style.width = `${progressPercent}%`;
+      document.getElementById('rosary-progress-badge').innerText = `${completedList.length}/5 (${progressPercent}%)`;
+
+      // Registro automático ao concluir os 5
+      if (completedList.length === 5) {
+        registerRosaryCompletion(todayStr, mysteryObj.name);
+      }
+    }
+
+    function toggleMysteryDone(idx) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (!appData.rosaryProgress[todayStr]) appData.rosaryProgress[todayStr] = [];
+
+      const list = appData.rosaryProgress[todayStr];
+      const existIdx = list.indexOf(idx);
+
+      if (existIdx > -1) {
+        list.splice(existIdx, 1);
+      } else {
+        list.push(idx);
+      }
+
+      saveStorage('vr_rosary_progress', appData.rosaryProgress);
+      loadRosaryTab();
+    }
+
+    function registerRosaryCompletion(dateStr, mysteryName) {
+      const intention = document.getElementById('rosary-intention-input').value || 'Sem intenção informada';
+      const exists = appData.rosaryHistory.some(h => h.date === dateStr);
+
+      if (!exists) {
+        appData.rosaryHistory.push({
+          date: dateStr,
+          mystery: mysteryName,
+          intention: intention
+        });
+        saveStorage('vr_rosary_history', appData.rosaryHistory);
+        renderRosaryStats();
+      }
+    }
+
+    function renderRosaryStats() {
+      document.getElementById('rosary-total-count').innerText = appData.rosaryHistory.length;
+      document.getElementById('rosary-streak').innerText = `${appData.rosaryHistory.length} 🔥`;
+
+      const listContainer = document.getElementById('rosary-history-list');
+      listContainer.innerHTML = '';
+
+      if (appData.rosaryHistory.length === 0) {
+        listContainer.innerHTML = '<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">Nenhuma oração registrada ainda.</p>';
+        return;
+      }
+
+      [...appData.rosaryHistory].reverse().forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.innerHTML = `
+          <div>
+            <strong style="color:var(--primary); font-size:12px;">${h.date} — ${h.mystery}</strong>
+            <div style="font-size:11px; color:var(--text-muted);">🙏 ${h.intention}</div>
+          </div>
+          <span style="color:var(--success); font-weight:bold; font-size:12px;">✓ Concluído</span>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    /* MODO GUIADO "ORAR AGORA" */
+    function startRosaryMode() {
+      currentGuidedStep = 0;
+      updateGuidedModal();
+      openModal('modal-rosary-guided');
+    }
+
+    function updateGuidedModal() {
+      const todayJS = new Date().getDay();
+      let convertedDay = todayJS === 0 ? 6 : todayJS - 1;
+      const todayMystery = mysteriesData[convertedDay];
+
+      document.getElementById('guided-mystery-step').innerText = `Mistério ${currentGuidedStep + 1} de 5`;
+      document.getElementById('guided-mystery-title').innerText = `${currentGuidedStep + 1}º Mistério`;
+      document.getElementById('guided-mystery-desc').innerText = todayMystery.items[currentGuidedStep];
+    }
+
+    function navigateGuidedMystery(dir) {
+      currentGuidedStep += dir;
+      if (currentGuidedStep < 0) currentGuidedStep = 0;
+      if (currentGuidedStep > 4) {
+        closeModal('modal-rosary-guided');
+        alert("🙏 Parabéns, você concluiu o Santo Terço de hoje!");
+        return;
+      }
+      updateGuidedModal();
+    }
+
+    /* ==========================================================================
+       LÓGICA DA ABA #5: FINANÇAS
+       ========================================================================== */
+    function loadFinanceData() {
+      currentFinanceMonth = document.getElementById('finance-month-select').value;
+      const monthKey = `2026-${currentFinanceMonth}`;
+
+      if (!appData.finances[monthKey]) {
+        appData.finances[monthKey] = {
+          inAdiantamento: 1700,
+          inSalario: 2400,
+          expenses: [
+            { name: "Internet Móvel", amount: 100 },
+            { name: "Internet Residencial", amount: 120 },
+            { name: "Cartão de Crédito", amount: 800 }
+          ]
+        };
+      }
+
+      const data = appData.finances[monthKey];
+      document.getElementById('fin-in-adiantamento').value = data.inAdiantamento;
+      document.getElementById('fin-in-salario').value = data.inSalario;
+
+      renderExpensesList(data.expenses);
+      calculateFinanceTotals();
+    }
+
+    function renderExpensesList(expenses) {
+      const container = document.getElementById('finance-expenses-list');
+      container.innerHTML = '';
+
+      expenses.forEach((exp, idx) => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.innerHTML = `
+          <div>
+            <strong>${exp.name}</strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" class="form-control" style="width:90px; padding:6px; font-size:12px;" value="${exp.amount}" onchange="updateExpenseAmount(${idx}, this.value)" />
+            <button style="border:none; background:none; color:#D32F2F; cursor:pointer;" onclick="deleteExpense(${idx})"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function updateExpenseAmount(idx, val) {
+      const monthKey = `2026-${currentFinanceMonth}`;
+      appData.finances[monthKey].expenses[idx].amount = parseFloat(val) || 0;
+      saveFinanceData();
+    }
+
+    function deleteExpense(idx) {
+      const monthKey = `2026-${currentFinanceMonth}`;
+      appData.finances[monthKey].expenses.splice(idx, 1);
+      saveFinanceData();
+      renderExpensesList(appData.finances[monthKey].expenses);
+    }
+
+    function saveNewExpense(e) {
+      e.preventDefault();
+      const name = document.getElementById('exp-name').value;
+      const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+
+      const monthKey = `2026-${currentFinanceMonth}`;
+      appData.finances[monthKey].expenses.push({ name, amount });
+
+      saveFinanceData();
+      closeModal('modal-add-expense');
+      document.getElementById('exp-name').value = '';
+      document.getElementById('exp-amount').value = '';
+      renderExpensesList(appData.finances[monthKey].expenses);
+    }
+
+    function saveFinanceData() {
+      const monthKey = `2026-${currentFinanceMonth}`;
+      appData.finances[monthKey].inAdiantamento = parseFloat(document.getElementById('fin-in-adiantamento').value) || 0;
+      appData.finances[monthKey].inSalario = parseFloat(document.getElementById('fin-in-salario').value) || 0;
+
+      saveStorage('vr_finances', appData.finances);
+      calculateFinanceTotals();
+    }
+
+    function calculateFinanceTotals() {
+      const monthKey = `2026-${currentFinanceMonth}`;
+      const data = appData.finances[monthKey];
+
+      const totalIn = data.inAdiantamento + data.inSalario;
+      const totalOut = data.expenses.reduce((acc, cur) => acc + cur.amount, 0);
+      const balance = totalIn - totalOut;
+
+      document.getElementById('fin-total-in').innerText = `R$ ${totalIn.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('fin-total-out').innerText = `R$ ${totalOut.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('fin-total-balance').innerText = `R$ ${balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+      renderFinanceChart(totalIn, totalOut);
+    }
+
+    function renderFinanceChart(totalIn, totalOut) {
+      const ctx = document.getElementById('financeChart').getContext('2d');
+      if (financeChartInstance) financeChartInstance.destroy();
+
+      financeChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sobra Líquida', 'Total de Gastos'],
+          datasets: [{
+            data: [Math.max(0, totalIn - totalOut), totalOut],
+            backgroundColor: ['#8B0046', '#E0D0D8'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
