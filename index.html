@@ -4,13 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Dashboard Vanessa Rodrigues</title>
+
   <!-- Google Fonts & Font Awesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Chart.js para Finanças -->
+  
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase SDKs (Compat v10) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
     :root {
@@ -24,8 +31,19 @@
       --text-muted: #7A6B72;
       --border-color: #F0E6EA;
       --success: #2E7D32;
+      --danger: #D32F2F;
       --shadow: 0 8px 24px rgba(139, 0, 70, 0.08);
       --radius: 18px;
+    }
+
+    /* MODO ESCURO */
+    body.dark-theme {
+      --bg-app: #121212;
+      --bg-card: #1E1E1E;
+      --text-dark: #F0E6EA;
+      --text-muted: #A09098;
+      --border-color: #2D2529;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     * {
@@ -34,17 +52,17 @@
       padding: 0;
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     }
 
     body {
-      background-color: #121212;
+      background-color: #0A0A0A;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
     }
 
-    /* Container Principal (Mobile View) */
     .app-container {
       width: 100%;
       max-width: 430px;
@@ -55,7 +73,7 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
     }
 
     @media (min-width: 450px) {
@@ -66,7 +84,30 @@
       }
     }
 
-    /* Cabeçalho */
+    /* TELA DE LOGIN */
+    #auth-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-card);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-logo h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 42px;
+      color: var(--primary);
+    }
+
+    /* HEADER */
     .app-header {
       padding: 16px 20px;
       background: var(--bg-card);
@@ -77,25 +118,29 @@
       z-index: 10;
     }
 
-    /* Fonte Cursiva Bonita para Olá, Vanessa */
     .app-header h1 {
       font-family: 'Great Vibes', cursive;
       font-size: 32px;
       color: var(--primary);
       font-weight: 500;
-      line-height: 1;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .header-icon-btn {
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background: #FAF7F8;
+      background: var(--bg-app);
       color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       border: 1px solid var(--border-color);
       cursor: pointer;
     }
@@ -116,7 +161,7 @@
       cursor: pointer;
     }
 
-    /* Conteúdo Rolável */
+    /* CONTEÚDO ROLÁVEL */
     .app-content {
       flex: 1;
       overflow-y: auto;
@@ -124,19 +169,30 @@
       padding-bottom: 90px;
     }
 
-    /* Menu de Navegação Inferior (6 itens com a Casinha) */
+    .tab-view {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* MENU NAVEGAÇÃO INFERIOR */
     .bottom-nav {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       height: 72px;
       background: var(--bg-card);
       display: flex;
       justify-content: space-around;
       align-items: center;
       border-top: 1px solid var(--border-color);
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
       z-index: 100;
     }
 
@@ -152,22 +208,13 @@
       font-size: 9px;
       font-weight: 600;
       width: 16%;
-      transition: all 0.2s ease;
     }
 
-    .nav-item i {
-      font-size: 18px;
-    }
+    .nav-item i { font-size: 18px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active i { transform: translateY(-2px); }
 
-    .nav-item.active {
-      color: var(--primary);
-    }
-
-    .nav-item.active i {
-      transform: translateY(-2px);
-    }
-
-    /* Card Standard */
+    /* CARDS */
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -187,18 +234,18 @@
       gap: 8px;
     }
 
-    /* Modais */
+    /* MODAIS */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(4px);
       display: flex;
       align-items: flex-end;
       z-index: 200;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.3s ease;
+      transition: opacity 0.25s ease;
     }
 
     .modal-overlay.active {
@@ -214,7 +261,7 @@
       padding: 24px;
       overflow-y: auto;
       transform: translateY(100%);
-      transition: transform 0.3s ease;
+      transition: transform 0.25s ease;
     }
 
     .modal-overlay.active .modal-card {
@@ -235,21 +282,17 @@
     }
 
     .btn-close {
-      background: #F4EFF2;
-      border: none;
-      width: 32px;
-      height: 32px;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      width: 32px; height: 32px;
       border-radius: 50%;
       color: var(--text-dark);
       cursor: pointer;
       font-weight: bold;
     }
 
-    /* Formulários e Botões */
-    .form-group {
-      margin-bottom: 14px;
-    }
-
+    /* INPUTS & FORMULÁRIOS */
+    .form-group { margin-bottom: 14px; }
     .form-group label {
       display: block;
       font-size: 11px;
@@ -266,12 +309,8 @@
       border-radius: 12px;
       font-size: 14px;
       outline: none;
-      background: #FFF;
+      background: var(--bg-card);
       color: var(--text-dark);
-    }
-
-    .form-control:focus, select:focus {
-      border-color: var(--primary);
     }
 
     .btn-primary {
@@ -288,13 +327,9 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(139, 0, 70, 0.2);
     }
 
-    .tab-view { display: none; }
-    .tab-view.active { display: block; }
-
-    /* Calendários Grid */
+    /* CALENDÁRIOS */
     .calendar-header {
       display: flex;
       justify-content: space-between;
@@ -327,7 +362,8 @@
       font-weight: 600;
       cursor: pointer;
       position: relative;
-      background: #FAF7F8;
+      background: var(--bg-app);
+      color: var(--text-dark);
     }
 
     .cal-cell.selected {
@@ -336,17 +372,45 @@
     }
 
     .cal-cell .dot {
-      width: 4px;
-      height: 4px;
+      width: 4px; height: 4px;
       background: var(--primary);
       border-radius: 50%;
-      position: absolute;
-      bottom: 4px;
+      position: absolute; bottom: 4px;
     }
 
     .cal-cell.selected .dot { background: white; }
 
-    /* Badges & Items */
+    /* CHECKLIST MINIMALISTA */
+    .exercise-check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-app);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .exercise-check-item.done {
+      opacity: 0.55;
+      text-decoration: line-through;
+    }
+
+    .custom-checkbox {
+      width: 20px; height: 20px;
+      border: 2px solid var(--primary);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 12px;
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+
+    .exercise-check-item.done .custom-checkbox {
+      background: var(--primary);
+    }
+
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -362,48 +426,12 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 14px;
-      background: #FAF7F8;
+      background: var(--bg-app);
       border-radius: 12px;
       margin-bottom: 8px;
+      color: var(--text-dark);
     }
 
-    /* Checklist Minimalista para Exercícios */
-    .exercise-check-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      background: #FAF7F8;
-      border-radius: 10px;
-      margin-bottom: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .exercise-check-item.done {
-      opacity: 0.55;
-      text-decoration: line-through;
-    }
-
-    .custom-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--primary);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: white;
-      font-size: 12px;
-      background: #FFF;
-      flex-shrink: 0;
-    }
-
-    .exercise-check-item.done .custom-checkbox {
-      background: var(--primary);
-    }
-
-    /* Accordion Menu */
     .accordion-item {
       border: 1px solid var(--border-color);
       border-radius: 14px;
@@ -413,7 +441,7 @@
 
     .accordion-header {
       padding: 14px 16px;
-      background: #FFF;
+      background: var(--bg-card);
       font-weight: 700;
       font-size: 14px;
       color: var(--text-dark);
@@ -425,28 +453,40 @@
 
     .accordion-content {
       padding: 14px 16px;
-      background: #FAF7F8;
+      background: var(--bg-app);
       font-size: 13px;
       border-top: 1px solid var(--border-color);
       display: none;
+      color: var(--text-dark);
     }
 
     .accordion-item.active .accordion-content { display: block; }
 
-    .progress-bar-bg {
-      width: 100%;
-      height: 8px;
-      background: #EAE3E7;
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 8px 0;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
     }
 
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--primary);
-      width: 0%;
-      transition: width 0.3s ease;
+    .stat-card {
+      background: var(--bg-app);
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
     }
 
     .profile-info-group {
@@ -468,74 +508,56 @@
       font-weight: 600;
       margin-top: 2px;
     }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .stat-card {
-      background: #FAF7F8;
-      padding: 12px;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .stat-label {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .card-rest {
-      background: linear-gradient(135deg, #FFF0F5, #FAF7F8);
-      border: 1px dashed var(--primary-light);
-      text-align: center;
-      padding: 20px;
-      border-radius: 14px;
-    }
-
-    .summary-card-box {
-      background: #FAF7F8;
-      border-left: 4px solid var(--primary);
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- Menu Superior Header -->
+
+    <!-- TELA DE AUTENTICAÇÃO COM FIREBASE -->
+    <div id="auth-screen">
+      <div class="auth-logo">
+        <h1>Olá, Vanessa!</h1>
+        <p style="color:var(--text-muted); font-size:13px; margin-top:8px;">Digite suas credenciais para acessar seu aplicativo de organização pessoal.</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="login-email" class="form-control" value="vannessa.roodrigues13@gmail.com" required />
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:14px;">ENTRAR NO DASHBOARD</button>
+      </form>
+    </div>
+
+    <!-- CABEÇALHO SUPERIOR -->
     <header class="app-header">
-      <!-- Ícone do Calendário no canto esquerdo -->
-      <button class="header-icon-btn" onclick="openModal('modal-quick-calendar')" title="Resumo por Data">
+      <button class="header-icon-btn" onclick="openModal('modal-quick-calendar')" title="Consulta Rápida">
         <i class="fa-regular fa-calendar-days"></i>
       </button>
 
-      <!-- Título Cursivo Bonito -->
       <h1>Olá, Vanessa!</h1>
 
-      <!-- Bolinha do Perfil no canto direito -->
-      <div class="profile-btn" onclick="openModal('modal-profile')">VR</div>
+      <div class="header-controls">
+        <!-- BOTÃO ALTERNAR MODO ESCURO/CLARO -->
+        <button class="header-icon-btn" onclick="toggleTheme()" title="Modo Claro/Escuro">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+        <!-- PERFIL -->
+        <div class="profile-btn" onclick="openModal('modal-profile')">VR</div>
+      </div>
     </header>
 
-    <!-- Conteúdo das Abas -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="app-content">
 
-      <!-- ABA #0: INÍCIO (INÍCIO / HOME) -->
+      <!-- ABA #0: INÍCIO -->
       <section id="tab-inicio" class="tab-view active">
-        <div class="card" style="background: linear-gradient(135deg, #FFF, #FFF0F5);">
+        <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
               <span class="badge" id="home-today-date">Hoje</span>
@@ -547,7 +569,7 @@
 
         <div class="card">
           <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino de Hoje</div>
-          <div id="home-workout-summary" class="summary-card-box">
+          <div id="home-workout-summary" style="background:var(--bg-app); padding:12px; border-radius:12px; border-left:4px solid var(--primary); margin-bottom:10px;">
             <strong style="color:var(--primary);" id="home-workout-title">-</strong>
             <p style="font-size:12px; color:var(--text-muted);" id="home-workout-desc">-</p>
           </div>
@@ -556,7 +578,7 @@
 
         <div class="card">
           <div class="section-title"><i class="fa-solid fa-cross"></i> Oração do Dia</div>
-          <div id="home-rosary-summary" class="summary-card-box">
+          <div id="home-rosary-summary" style="background:var(--bg-app); padding:12px; border-radius:12px; border-left:4px solid var(--primary); margin-bottom:10px;">
             <strong style="color:var(--primary);" id="home-rosary-title">-</strong>
             <p style="font-size:12px; color:var(--text-muted);">Contemple os mistérios recomendados para hoje.</p>
           </div>
@@ -565,34 +587,24 @@
 
         <div class="card">
           <div class="section-title"><i class="fa-regular fa-clock"></i> Compromissos de Hoje</div>
-          <div id="home-events-summary">
-            <p style="font-size:12px; color:var(--text-muted);">Nenhum compromisso para hoje.</p>
-          </div>
+          <div id="home-events-summary"></div>
           <button class="btn-primary" onclick="switchTab('agenda')" style="padding:10px; font-size:12px; margin-top:8px;">Abrir Agenda</button>
         </div>
       </section>
-      
+
       <!-- ABA #1: AGENDA -->
       <section id="tab-agenda" class="tab-view">
         <div class="card">
           <div class="calendar-header">
-            <h3 id="agenda-month-year" class="section-title" style="margin-bottom:0;">
-              <i class="fa-regular fa-calendar-days"></i> Janeiro 2026
-            </h3>
+            <h3 id="agenda-month-year" class="section-title" style="margin-bottom:0;">Janeiro 2026</h3>
             <div>
               <button class="btn-close" onclick="changeMonth('agenda', -1)"><i class="fa-solid fa-chevron-left"></i></button>
               <button class="btn-close" onclick="changeMonth('agenda', 1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
           </div>
-
           <div class="calendar-grid">
-            <div class="cal-day-label">D</div>
-            <div class="cal-day-label">S</div>
-            <div class="cal-day-label">T</div>
-            <div class="cal-day-label">Q</div>
-            <div class="cal-day-label">Q</div>
-            <div class="cal-day-label">S</div>
-            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">D</div><div class="cal-day-label">S</div><div class="cal-day-label">T</div>
+            <div class="cal-day-label">Q</div><div class="cal-day-label">Q</div><div class="cal-day-label">S</div><div class="cal-day-label">S</div>
           </div>
           <div class="calendar-grid" id="agenda-calendar-grid"></div>
         </div>
@@ -627,24 +639,19 @@
 
         <div class="card">
           <div class="calendar-header">
-            <h3 id="workout-month-year" class="section-title" style="margin:0;"><i class="fa-solid fa-calendar-check"></i> Registro 2026</h3>
+            <h3 id="workout-month-year" class="section-title" style="margin:0;">Registro 2026</h3>
             <div>
               <button class="btn-close" onclick="changeMonth('workout', -1)"><i class="fa-solid fa-chevron-left"></i></button>
               <button class="btn-close" onclick="changeMonth('workout', 1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
           </div>
           <div class="calendar-grid">
-            <div class="cal-day-label">D</div>
-            <div class="cal-day-label">S</div>
-            <div class="cal-day-label">T</div>
-            <div class="cal-day-label">Q</div>
-            <div class="cal-day-label">Q</div>
-            <div class="cal-day-label">S</div>
-            <div class="cal-day-label">S</div>
+            <div class="cal-day-label">D</div><div class="cal-day-label">S</div><div class="cal-day-label">T</div>
+            <div class="cal-day-label">Q</div><div class="cal-day-label">Q</div><div class="cal-day-label">S</div><div class="cal-day-label">S</div>
           </div>
           <div class="calendar-grid" id="workout-calendar-grid"></div>
 
-          <div style="margin-top: 15px; text-align: center;">
+          <div style="margin-top: 15px;">
             <button class="btn-primary" id="btn-toggle-workout" onclick="toggleWorkoutCompletion()">
               <i class="fa-solid fa-check-circle"></i> Marcar Treino Concluído
             </button>
@@ -670,77 +677,54 @@
       <section id="tab-dieta" class="tab-view">
         <div class="card">
           <div class="section-title"><i class="fa-solid fa-utensils"></i> Plano Alimentar Diário</div>
-          <p style="font-size:12px; color: var(--text-muted); margin-bottom: 14px;">Consulte abaixo as opções de refeições planejadas para o seu dia a dia.</p>
-
+          
           <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-              <span>☕ Café da Manhã</span> <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span>☕ Café da Manhã</span> <i class="fa-solid fa-chevron-down"></i></div>
             <div class="accordion-content">
-              <p><strong>Opção 1:</strong> 2 Fatias de pão integral e 2 ovos.</p>
-              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
+              <p><strong>Opção 1:</strong> 2 Fatias de pão integral e 2 ovos.</p><hr style="margin:8px 0; border:none; border-top:1px dashed var(--border-color);">
               <p><strong>Opção 2:</strong> Iogurte natural + 1 fruta + Aveia.</p>
             </div>
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-              <span>🥗 Almoço</span> <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div class="accordion-content">
-              <p>Arroz, feijão, carne ou frango, salada fresca, 1 opção de legume.</p>
-            </div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span>🥗 Almoço</span> <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="accordion-content"><p>Arroz, feijão, carne ou frango, salada fresca, 1 opção de legume.</p></div>
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-              <span>🍎 Lanche da Tarde</span> <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div class="accordion-content">
-              <p>Frutas variadas à sua escolha.</p>
-            </div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span>🍎 Lanche da Tarde</span> <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="accordion-content"><p>Frutas variadas à sua escolha.</p></div>
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-              <span>🍲 Jantar</span> <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span>🍲 Jantar</span> <i class="fa-solid fa-chevron-down"></i></div>
             <div class="accordion-content">
-              <p><strong>Opção 1:</strong> Arroz + 1 proteína + salada.</p>
-              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
-              <p><strong>Opção 2:</strong> Omelete e salada completa.</p>
-              <hr style="margin:8px 0; border:none; border-top:1px dashed #E0D0D8;">
+              <p><strong>Opção 1:</strong> Arroz + 1 proteína + salada.</p><hr style="margin:8px 0; border:none; border-top:1px dashed var(--border-color);">
+              <p><strong>Opção 2:</strong> Omelete e salada completa.</p><hr style="margin:8px 0; border:none; border-top:1px dashed var(--border-color);">
               <p><strong>Opção 3:</strong> Sopas leves.</p>
             </div>
           </div>
 
           <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-              <span>🍓 Sobremesas</span> <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div class="accordion-content">
-              <p>• Gelatina</p>
-              <p>• Frutas frescas ou aquecidas com canela</p>
-            </div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span>🍓 Sobremesas</span> <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="accordion-content"><p>• Gelatina<br>• Frutas frescas ou aquecidas com canela</p></div>
           </div>
         </div>
       </section>
 
       <!-- ABA #4: ESPIRITUAL -->
       <section id="tab-espiritual" class="tab-view">
-        <div class="card" style="text-align:center; background: linear-gradient(180deg, #FFF, #FAF4F7);">
-          <div style="font-size: 24px; color: var(--primary);"><i class="fa-solid fa-cross"></i></div>
-          <h2 style="color:var(--primary); font-size:18px; font-weight:800; margin-top:4px;" id="rosary-day-title">Mistérios de Hoje</h2>
+        <div class="card" style="text-align:center;">
+          <i class="fa-solid fa-cross" style="font-size:24px; color:var(--primary);"></i>
+          <h2 style="color:var(--primary); font-size:18px; font-weight:800; margin-top:4px;" id="rosary-day-title">Mistérios do Terço</h2>
           <p id="rosary-subtitle" style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">-</p>
 
           <div class="form-group" style="text-align:left;">
-            <label><i class="fa-solid fa-hands-praying"></i> Minha Intenção de hoje</label>
+            <label>Minha Intenção de Hoje</label>
             <input type="text" id="rosary-intention-input" class="form-control" placeholder="Escreva sua intenção para esta oração..." />
           </div>
 
-          <button class="btn-primary" onclick="startRosaryMode()">
-            <i class="fa-solid fa-book-open"></i> INICIAR ROSÁRIO
-          </button>
+          <button class="btn-primary" onclick="startRosaryMode()"><i class="fa-solid fa-book-open"></i> INICIAR ROSÁRIO</button>
         </div>
 
         <div class="card">
@@ -748,12 +732,7 @@
             <span><i class="fa-solid fa-rosary"></i> Acompanhamento</span>
             <span class="badge" id="rosary-progress-badge">0/5</span>
           </div>
-          
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="rosary-progress-bar"></div>
-          </div>
-
-          <div id="mysteries-cards-container" style="margin-top:14px;"></div>
+          <div id="mysteries-cards-container"></div>
         </div>
 
         <div class="card">
@@ -768,22 +747,8 @@
               <div class="stat-label">Dias Consecutivos</div>
             </div>
           </div>
-
-          <div class="section-title" style="margin-top:20px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Oração</div>
+          <div class="section-title" style="margin-top:20px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</div>
           <div id="rosary-history-list" style="max-height: 200px; overflow-y: auto;"></div>
-        </div>
-
-        <div class="card">
-          <div class="section-title"><i class="fa-regular fa-calendar"></i> Guia Semanal dos Mistérios</div>
-          <div style="font-size:12px;">
-            <div class="item-card"><span><strong>Segunda:</strong> Gozosos</span> <i class="fa-solid fa-dove" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Terça:</strong> Dolorosos</span> <i class="fa-solid fa-cross" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Quarta:</strong> Gloriosos</span> <i class="fa-solid fa-crown" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Quinta:</strong> Luminosos</span> <i class="fa-solid fa-sun" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Sexta:</strong> Dolorosos</span> <i class="fa-solid fa-cross" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Sábado:</strong> Gozosos</span> <i class="fa-solid fa-rose" style="color:var(--primary);"></i></div>
-            <div class="item-card"><span><strong>Domingo:</strong> Gloriosos</span> <i class="fa-solid fa-crown" style="color:var(--primary);"></i></div>
-          </div>
         </div>
       </section>
 
@@ -793,18 +758,10 @@
           <div class="form-group">
             <label>Mês de Referência (2026)</label>
             <select id="finance-month-select" onchange="loadFinanceData()">
-              <option value="0">Janeiro 2026</option>
-              <option value="1">Fevereiro 2026</option>
-              <option value="2">Março 2026</option>
-              <option value="3">Abril 2026</option>
-              <option value="4">Maio 2026</option>
-              <option value="5">Junho 2026</option>
-              <option value="6">Julho 2026</option>
-              <option value="7">Agosto 2026</option>
-              <option value="8">Setembro 2026</option>
-              <option value="9">Outubro 2026</option>
-              <option value="10">Novembro 2026</option>
-              <option value="11">Dezembro 2026</option>
+              <option value="0">Janeiro 2026</option><option value="1">Fevereiro 2026</option><option value="2">Março 2026</option>
+              <option value="3">Abril 2026</option><option value="4">Maio 2026</option><option value="5">Junho 2026</option>
+              <option value="6">Julho 2026</option><option value="7">Agosto 2026</option><option value="8">Setembro 2026</option>
+              <option value="9">Outubro 2026</option><option value="10">Novembro 2026</option><option value="11">Dezembro 2026</option>
             </select>
           </div>
 
@@ -814,7 +771,7 @@
               <div class="stat-label" style="font-size:9px;">Ganhos</div>
             </div>
             <div class="stat-card" style="padding:8px;">
-              <div class="stat-value" style="font-size:13px; color:#D32F2F;" id="fin-total-out">R$ 0</div>
+              <div class="stat-value" style="font-size:13px; color:var(--danger);" id="fin-total-out">R$ 0</div>
               <div class="stat-label" style="font-size:9px;">Gastos</div>
             </div>
             <div class="stat-card" style="padding:8px;">
@@ -838,7 +795,7 @@
 
         <div class="card">
           <div class="section-title" style="justify-content:space-between;">
-            <span><i class="fa-solid fa-receipt" style="color:#D32F2F;"></i> Gastos & Contas</span>
+            <span><i class="fa-solid fa-receipt" style="color:var(--danger);"></i> Gastos & Contas</span>
             <button class="badge" onclick="openModal('modal-add-expense')" style="border:none; cursor:pointer;">+ Adicionar</button>
           </div>
           <div id="finance-expenses-list"></div>
@@ -854,142 +811,66 @@
 
     </main>
 
-    <!-- Navigation Bar com Casinha na primeira posição -->
+    <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="bottom-nav">
-      <button class="nav-item active" onclick="switchTab('inicio')">
-        <i class="fa-solid fa-house"></i>
-        <span>Início</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('agenda')">
-        <i class="fa-regular fa-calendar"></i>
-        <span>Agenda</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('treinos')">
-        <i class="fa-solid fa-dumbbell"></i>
-        <span>Treinos</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('dieta')">
-        <i class="fa-solid fa-utensils"></i>
-        <span>Dieta</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('espiritual')">
-        <i class="fa-solid fa-cross"></i>
-        <span>Espiritual</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('financas')">
-        <i class="fa-solid fa-wallet"></i>
-        <span>Finanças</span>
-      </button>
+      <button class="nav-item active" onclick="switchTab('inicio')"><i class="fa-solid fa-house"></i><span>Início</span></button>
+      <button class="nav-item" onclick="switchTab('agenda')"><i class="fa-regular fa-calendar"></i><span>Agenda</span></button>
+      <button class="nav-item" onclick="switchTab('treinos')"><i class="fa-solid fa-dumbbell"></i><span>Treinos</span></button>
+      <button class="nav-item" onclick="switchTab('dieta')"><i class="fa-solid fa-utensils"></i><span>Dieta</span></button>
+      <button class="nav-item" onclick="switchTab('espiritual')"><i class="fa-solid fa-cross"></i><span>Espiritual</span></button>
+      <button class="nav-item" onclick="switchTab('financas')"><i class="fa-solid fa-wallet"></i><span>Finanças</span></button>
     </nav>
 
-    <!-- MODAL: RESUMO POR DATA (Ícone de Calendário no topo esquerdo) -->
+    <!-- MODAIS -->
     <div id="modal-quick-calendar" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
-          <h2><i class="fa-regular fa-calendar-days"></i> Consulta de Dia</h2>
+          <h2><i class="fa-regular fa-calendar-days"></i> Consulta Rápida</h2>
           <button class="btn-close" onclick="closeModal('modal-quick-calendar')">✕</button>
         </div>
-
         <div class="form-group">
-          <label>Selecione uma data para consultar</label>
+          <label>Selecione uma data</label>
           <input type="date" id="quick-date-picker" class="form-control" onchange="renderQuickDateSummary()" />
         </div>
-
-        <div id="quick-summary-content">
-          <!-- Renderizado dinamicamente -->
-        </div>
+        <div id="quick-summary-content"></div>
       </div>
     </div>
 
-    <!-- MODAL: PERFIL DO USUÁRIO -->
     <div id="modal-profile" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
           <h2>Meu Perfil</h2>
           <button class="btn-close" onclick="closeModal('modal-profile')">✕</button>
         </div>
-
         <div style="text-align:center; margin-bottom:20px;">
           <div class="profile-btn" style="width:70px; height:70px; font-size:24px; margin:0 auto 10px;">VR</div>
           <h3 style="color:var(--text-dark); font-size:18px;">Vanessa Rodrigues</h3>
         </div>
-
-        <div class="profile-info-group">
-          <div class="profile-info-label">Data de Nascimento</div>
-          <div class="profile-info-value">08/05/1999</div>
-        </div>
-        <div class="profile-info-group">
-          <div class="profile-info-label">Endereço</div>
-          <div class="profile-info-value">Avenida Aricanduva 2621 - Vila Matilde</div>
-        </div>
-        <div class="profile-info-group">
-          <div class="profile-info-label">Telefone</div>
-          <div class="profile-info-value">(11) 94823-5412</div>
-        </div>
-        <div class="profile-info-group">
-          <div class="profile-info-label">E-mail Pessoal</div>
-          <div class="profile-info-value">vannessa.roodrigues13@gmail.com</div>
-        </div>
-        <div class="profile-info-group">
-          <div class="profile-info-label">E-mail Corporativo</div>
-          <div class="profile-info-value">vanessa@brmobility.com</div>
-        </div>
-
-        <div style="margin-top:20px; padding:14px; background:#FFF0F5; border-radius:14px; border:1px solid var(--accent);">
-          <div class="profile-info-label" style="color:var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Contato de Emergência</div>
-          <div class="profile-info-value" style="font-weight:700;">Flavia Ribeiro (Irmã)</div>
-          <div class="profile-info-value" style="font-size:13px; margin-top:2px;">(11) 99304-2115</div>
-        </div>
+        <div class="profile-info-group"><div class="profile-info-label">Data de Nascimento</div><div class="profile-info-value">08/05/1999</div></div>
+        <div class="profile-info-group"><div class="profile-info-label">Endereço</div><div class="profile-info-value">Avenida Aricanduva 2621 - Vila Matilde</div></div>
+        <div class="profile-info-group"><div class="profile-info-label">Telefone</div><div class="profile-info-value">(11) 94823-5412</div></div>
+        <div class="profile-info-group"><div class="profile-info-label">E-mail Pessoal</div><div class="profile-info-value">vannessa.roodrigues13@gmail.com</div></div>
+        <div class="profile-info-group"><div class="profile-info-label">E-mail Corporativo</div><div class="profile-info-value">vanessa@brmobility.com</div></div>
+        <button class="btn-primary" onclick="handleLogout()" style="background:var(--danger); margin-top:15px;"><i class="fa-solid fa-right-from-bracket"></i> Sair da Conta</button>
       </div>
     </div>
 
-    <!-- MODAL: CRIAR COMPROMISSO -->
     <div id="modal-add-event" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
-          <h2>Novo Compromisso</h2>
+          <h2 id="event-modal-title">Novo Compromisso</h2>
           <button class="btn-close" onclick="closeModal('modal-add-event')">✕</button>
         </div>
         <form onsubmit="saveNewEvent(event)">
-          <div class="form-group">
-            <label>Título do Compromisso</label>
-            <input type="text" id="event-title" class="form-control" placeholder="Ex: Reunião de Trabalho" required />
-          </div>
-          <div class="form-group">
-            <label>Horário</label>
-            <input type="time" id="event-time" class="form-control" required />
-          </div>
-          <div class="form-group">
-            <label>Duração</label>
-            <input type="text" id="event-duration" class="form-control" placeholder="Ex: 1 hora, 30 min" required />
-          </div>
-          <button type="submit" class="btn-primary" style="margin-top:10px;">Salvar Compromisso</button>
+          <input type="hidden" id="event-edit-index" value="-1" />
+          <div class="form-group"><label>Título</label><input type="text" id="event-title" class="form-control" required /></div>
+          <div class="form-group"><label>Horário</label><input type="time" id="event-time" class="form-control" required /></div>
+          <div class="form-group"><label>Duração</label><input type="text" id="event-duration" class="form-control" placeholder="Ex: 1 hora" required /></div>
+          <button type="submit" class="btn-primary">Salvar Compromisso</button>
         </form>
       </div>
     </div>
 
-    <!-- MODAL: ORAR AGORA -->
-    <div id="modal-rosary-guided" class="modal-overlay">
-      <div class="modal-card" style="text-align:center; max-height:90vh;">
-        <div class="modal-header">
-          <span class="badge" id="guided-mystery-step">Mistério 1 de 5</span>
-          <button class="btn-close" onclick="closeModal('modal-rosary-guided')">✕</button>
-        </div>
-        
-        <div style="padding: 20px 0;">
-          <i class="fa-solid fa-rosary" style="font-size:36px; color:var(--primary); margin-bottom:12px;"></i>
-          <h3 id="guided-mystery-title" style="color:var(--primary); font-size:20px; font-weight:800; margin-bottom:10px;">-</h3>
-          <p id="guided-mystery-desc" style="font-size:15px; color:var(--text-dark); line-height:1.5;">-</p>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:20px;">
-          <button class="btn-primary" style="background:#E0D0D8; color:var(--text-dark);" onclick="navigateGuidedMystery(-1)">ANTERIOR</button>
-          <button class="btn-primary" onclick="navigateGuidedMystery(1)">PRÓXIMO</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL: ADICIONAR DESPESA -->
     <div id="modal-add-expense" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
@@ -997,44 +878,63 @@
           <button class="btn-close" onclick="closeModal('modal-add-expense')">✕</button>
         </div>
         <form onsubmit="saveNewExpense(event)">
-          <div class="form-group">
-            <label>Nome do Gasto / Conta</label>
-            <input type="text" id="exp-name" class="form-control" placeholder="Ex: Mercado, Farmácia" required />
-          </div>
-          <div class="form-group">
-            <label>Valor (R$)</label>
-            <input type="number" step="0.01" id="exp-amount" class="form-control" placeholder="0.00" required />
-          </div>
-          <button type="submit" class="btn-primary" style="margin-top:10px;">Adicionar Gasto</button>
+          <div class="form-group"><label>Nome da Conta</label><input type="text" id="exp-name" class="form-control" required /></div>
+          <div class="form-group"><label>Valor (R$)</label><input type="number" step="0.01" id="exp-amount" class="form-control" required /></div>
+          <button type="submit" class="btn-primary">Adicionar Gasto</button>
         </form>
+      </div>
+    </div>
+
+    <div id="modal-rosary-guided" class="modal-overlay">
+      <div class="modal-card" style="text-align:center;">
+        <div class="modal-header">
+          <span class="badge" id="guided-mystery-step">Mistério 1 de 5</span>
+          <button class="btn-close" onclick="closeModal('modal-rosary-guided')">✕</button>
+        </div>
+        <div style="padding: 20px 0;">
+          <i class="fa-solid fa-rosary" style="font-size:36px; color:var(--primary); margin-bottom:12px;"></i>
+          <h3 id="guided-mystery-title" style="color:var(--primary); font-size:20px; font-weight:800; margin-bottom:10px;">-</h3>
+          <p id="guided-mystery-desc" style="font-size:15px; color:var(--text-dark); line-height:1.5;">-</p>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn-primary" style="background:#E0D0D8; color:var(--text-dark);" onclick="navigateGuidedMystery(-1)">ANTERIOR</button>
+          <button class="btn-primary" onclick="navigateGuidedMystery(1)">PRÓXIMO</button>
+        </div>
       </div>
     </div>
 
   </div>
 
   <script>
-    /* ==========================================================================
-       ESTADOS E BANCO DE DADOS LOCAL
-       ========================================================================== */
+    /* CONFIGURAÇÃO DO SDK FIREBASE DA VANESSA */
+    const firebaseConfig = {
+      apiKey: "AIzaSyB4YLZrPJRlYIsrRLkfU7heXmn1OtJbrbk",
+      authDomain: "lifeproject-f56ab.firebaseapp.com",
+      projectId: "lifeproject-f56ab",
+      storageBucket: "lifeproject-f56ab.firebasestorage.app",
+      messagingSenderId: "13827771137",
+      appId: "1:13827771137:web:5a1a2f1aed9417378f2900"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     
-    let currentAgendaMonth = 0;
-    let currentAgendaYear = 2026;
-    let selectedAgendaDateStr = "2026-01-01";
-
-    let currentWorkoutMonth = 0;
-    let currentWorkoutYear = 2026;
-    let selectedWorkoutDateStr = "2026-01-01";
-
+    let currentAgendaMonth = 0; let currentAgendaYear = 2026; let selectedAgendaDateStr = "2026-01-01";
+    let currentWorkoutMonth = 0; let currentWorkoutYear = 2026; let selectedWorkoutDateStr = "2026-01-01";
     let currentFinanceMonth = 0;
 
     let appData = {
-      events: JSON.parse(localStorage.getItem('vr_events')) || {},
-      completedWorkouts: JSON.parse(localStorage.getItem('vr_workouts')) || [],
-      workoutChecklist: JSON.parse(localStorage.getItem('vr_workout_checklist')) || {},
-      rosaryHistory: JSON.parse(localStorage.getItem('vr_rosary_history')) || [],
-      rosaryProgress: JSON.parse(localStorage.getItem('vr_rosary_progress')) || {},
-      finances: JSON.parse(localStorage.getItem('vr_finances')) || {}
+      events: {},
+      completedWorkouts: [],
+      workoutChecklist: {},
+      rosaryHistory: [],
+      rosaryProgress: {},
+      finances: {}
     };
 
     const workoutsData = {
@@ -1057,30 +957,70 @@
       6: { name: "Mistérios Gloriosos", items: ["1. A Ressurreição de Jesus.", "2. A Ascensão de Jesus ao Céu.", "3. A Vinda do Espírito Santo em Pentecostes.", "4. A Assunção de Maria ao Céu.", "5. A Coroação de Maria como Rainha do Céu e da Terra."] }
     };
 
-    let currentGuidedStep = 0;
     let financeChartInstance = null;
+    let currentGuidedStep = 0;
 
-    window.onload = function() {
+    // GERENCIAMENTO DE AUTENTICAÇÃO
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-screen').style.display = 'none';
+        syncFirebaseRealtime();
+      } else {
+        currentUser = null;
+        document.getElementById('auth-screen').style.display = 'flex';
+      }
+    });
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Erro ao autenticar: " + err.message));
+    }
+
+    function handleLogout() {
+      auth.signOut();
+      closeModal('modal-profile');
+    }
+
+    // SINCRONIZAÇÃO EM TEMPO REAL FIRESTORE
+    function syncFirebaseRealtime() {
+      if (!currentUser) return;
+      db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
+        if (doc.exists) {
+          appData = Object.assign(appData, doc.data());
+          refreshAllViews();
+        } else {
+          saveToFirestore();
+        }
+      });
+    }
+
+    function saveToFirestore() {
+      if (!currentUser) return;
+      db.collection('users').doc(currentUser.uid).set(appData, { merge: true });
+    }
+
+    function refreshAllViews() {
       loadHomeScreen();
       renderAgendaCalendar();
       renderWorkoutCalendar();
       loadWorkoutDetails();
       loadRosaryTab();
       loadFinanceData();
-      
-      const todayIso = new Date().toISOString().split('T')[0];
-      document.getElementById('quick-date-picker').value = todayIso;
-      renderQuickDateSummary();
-    };
+    }
 
-    function saveStorage(key, val) {
-      localStorage.setItem(key, JSON.stringify(val));
+    // ALTERNAR MODO ESCURO E CLARO
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+      const isDark = document.body.classList.contains('dark-theme');
+      document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
       document.getElementById(`tab-${tabId}`).classList.add('active');
       const navBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick').includes(tabId));
       if (navBtn) navBtn.classList.add('active');
@@ -1090,127 +1030,55 @@
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     function toggleAccordion(headerEl) { headerEl.parentElement.classList.toggle('active'); }
 
-    /* ==========================================================================
-       LÓGICA DA ABA INÍCIO & RESUMO POR DATA
-       ========================================================================== */
+    /* INÍCIO */
     function loadHomeScreen() {
       const todayDate = new Date();
       const todayStr = todayDate.toISOString().split('T')[0];
-      let jsDay = todayDate.getDay();
-      let convertedDay = jsDay === 0 ? 6 : jsDay - 1;
+      let convertedDay = todayDate.getDay() === 0 ? 6 : todayDate.getDay() - 1;
 
       document.getElementById('home-today-date').innerText = `Hoje • ${todayDate.toLocaleDateString('pt-BR')}`;
+      document.getElementById('home-workout-title').innerText = workoutsData[convertedDay].title;
+      document.getElementById('home-workout-desc').innerText = workoutsData[convertedDay].desc;
+      document.getElementById('home-rosary-title').innerText = mysteriesData[convertedDay].name;
 
-      // Treino de hoje
-      const workout = workoutsData[convertedDay];
-      document.getElementById('home-workout-title').innerText = workout.title;
-      document.getElementById('home-workout-desc').innerText = workout.desc;
-
-      // Terço de hoje
-      const mystery = mysteriesData[convertedDay];
-      document.getElementById('home-rosary-title').innerText = mystery.name;
-
-      // Eventos de hoje
       const events = appData.events[todayStr] || [];
-      const eventsContainer = document.getElementById('home-events-summary');
-      if (events.length === 0) {
-        eventsContainer.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">Nenhum compromisso agendado para hoje.</p>';
-      } else {
-        eventsContainer.innerHTML = events.map(ev => `
-          <div class="summary-card-box">
-            <strong>${ev.title}</strong>
-            <div style="font-size:11px; color:var(--text-muted);">${ev.time} (${ev.duration})</div>
-          </div>
-        `).join('');
-      }
+      const container = document.getElementById('home-events-summary');
+      container.innerHTML = events.length === 0 
+        ? '<p style="font-size:12px; color:var(--text-muted);">Nenhum compromisso agendado para hoje.</p>' 
+        : events.map(e => `<div class="item-card"><div><strong>${e.title}</strong><div style="font-size:11px;">${e.time} (${e.duration})</div></div></div>`).join('');
     }
 
-    function renderQuickDateSummary() {
-      const dateVal = document.getElementById('quick-date-picker').value;
-      if (!dateVal) return;
-
-      const [year, month, day] = dateVal.split('-').map(Number);
-      const selectedDate = new Date(year, month - 1, day);
-      let jsDay = selectedDate.getDay();
-      let convertedDay = jsDay === 0 ? 6 : jsDay - 1;
-
-      const workout = workoutsData[convertedDay];
-      const mystery = mysteriesData[convertedDay];
-      const events = appData.events[dateVal] || [];
-
-      const container = document.getElementById('quick-summary-content');
-      container.innerHTML = `
-        <div class="card" style="margin-top:10px;">
-          <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino</div>
-          <strong style="color:var(--primary); font-size:14px;">${workout.title}</strong>
-          <p style="font-size:12px; color:var(--text-muted);">${workout.desc}</p>
-        </div>
-
-        <div class="card">
-          <div class="section-title"><i class="fa-solid fa-cross"></i> Mistério do Terço</div>
-          <strong style="color:var(--primary); font-size:14px;">${mystery.name}</strong>
-        </div>
-
-        <div class="card">
-          <div class="section-title"><i class="fa-regular fa-clock"></i> Compromissos (${events.length})</div>
-          ${events.length === 0 
-            ? '<p style="font-size:12px; color:var(--text-muted);">Sem compromissos nesta data.</p>' 
-            : events.map(e => `<div class="item-card"><div><strong>${e.title}</strong><div style="font-size:11px;">${e.time}</div></div></div>`).join('')
-          }
-        </div>
-      `;
-    }
-
-    /* ==========================================================================
-       LÓGICA DA ABA AGENDA
-       ========================================================================== */
+    /* AGENDA EDITÁVEL */
     function renderAgendaCalendar() {
       document.getElementById('agenda-month-year').innerText = `${monthNames[currentAgendaMonth]} ${currentAgendaYear}`;
-      const grid = document.getElementById('agenda-calendar-grid');
-      grid.innerHTML = '';
-
+      const grid = document.getElementById('agenda-calendar-grid'); grid.innerHTML = '';
       const firstDay = new Date(currentAgendaYear, currentAgendaMonth, 1).getDay();
       const daysInMonth = new Date(currentAgendaYear, currentAgendaMonth + 1, 0).getDate();
 
       for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
 
       for (let day = 1; day <= daysInMonth; day++) {
-        const cell = document.createElement('div');
-        cell.className = 'cal-cell';
-        cell.innerText = day;
-
+        const cell = document.createElement('div'); cell.className = 'cal-cell'; cell.innerText = day;
         const dateStr = `${currentAgendaYear}-${String(currentAgendaMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
         if (dateStr === selectedAgendaDateStr) cell.classList.add('selected');
         if (appData.events[dateStr] && appData.events[dateStr].length > 0) {
-          const dot = document.createElement('div');
-          dot.className = 'dot';
-          cell.appendChild(dot);
+          const dot = document.createElement('div'); dot.className = 'dot'; cell.appendChild(dot);
         }
-
-        cell.onclick = () => {
-          selectedAgendaDateStr = dateStr;
-          renderAgendaCalendar();
-          renderAgendaEvents();
-        };
-
+        cell.onclick = () => { selectedAgendaDateStr = dateStr; renderAgendaCalendar(); renderAgendaEvents(); };
         grid.appendChild(cell);
       }
       renderAgendaEvents();
     }
 
     function renderAgendaEvents() {
-      const listContainer = document.getElementById('agenda-events-list');
+      const container = document.getElementById('agenda-events-list');
       document.getElementById('selected-date-badge').innerText = selectedAgendaDateStr;
-      listContainer.innerHTML = '';
-
+      container.innerHTML = '';
       const events = appData.events[selectedAgendaDateStr] || [];
 
       if (events.length === 0) {
-        listContainer.innerHTML = `
-          <p style="text-align:center; color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Nenhum compromisso marcado.</p>
-          <button class="btn-primary" onclick="openModal('modal-add-event')"><i class="fa-solid fa-plus"></i> Novo Compromisso</button>
-        `;
+        container.innerHTML = `<p style="text-align:center; color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Nenhum compromisso.</p>
+        <button class="btn-primary" onclick="openEventModal(-1)"><i class="fa-solid fa-plus"></i> Novo Compromisso</button>`;
         return;
       }
 
@@ -1218,44 +1086,55 @@
         const item = document.createElement('div');
         item.className = 'item-card';
         item.innerHTML = `
+          <div><strong>${ev.title}</strong><div style="font-size:12px; color:var(--text-muted);">${ev.time} (${ev.duration})</div></div>
           <div>
-            <strong style="color:var(--primary); font-size:14px;">${ev.title}</strong>
-            <div style="font-size:12px; color:var(--text-muted);">${ev.time} (${ev.duration})</div>
+            <button style="border:none; background:none; color:var(--primary); margin-right:8px; cursor:pointer;" onclick="openEventModal(${idx})"><i class="fa-solid fa-pen"></i></button>
+            <button style="border:none; background:none; color:var(--danger); cursor:pointer;" onclick="deleteEvent(${idx})"><i class="fa-solid fa-trash"></i></button>
           </div>
-          <button style="border:none; background:none; color:#D32F2F; cursor:pointer;" onclick="deleteEvent(${idx})"><i class="fa-solid fa-trash"></i></button>
         `;
-        listContainer.appendChild(item);
+        container.appendChild(item);
       });
+      const addBtn = document.createElement('button'); addBtn.className = 'btn-primary'; addBtn.style.marginTop = '10px';
+      addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Outro'; addBtn.onclick = () => openEventModal(-1);
+      container.appendChild(addBtn);
+    }
 
-      const addBtn = document.createElement('button');
-      addBtn.className = 'btn-primary';
-      addBtn.style.marginTop = '10px';
-      addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Outro';
-      addBtn.onclick = () => openModal('modal-add-event');
-      listContainer.appendChild(addBtn);
+    function openEventModal(idx) {
+      document.getElementById('event-edit-index').value = idx;
+      if (idx > -1) {
+        const ev = appData.events[selectedAgendaDateStr][idx];
+        document.getElementById('event-title').value = ev.title;
+        document.getElementById('event-time').value = ev.time;
+        document.getElementById('event-duration').value = ev.duration;
+      } else {
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-time').value = '';
+        document.getElementById('event-duration').value = '';
+      }
+      openModal('modal-add-event');
     }
 
     function saveNewEvent(e) {
       e.preventDefault();
+      const idx = parseInt(document.getElementById('event-edit-index').value);
       const title = document.getElementById('event-title').value;
       const time = document.getElementById('event-time').value;
       const duration = document.getElementById('event-duration').value;
 
       if (!appData.events[selectedAgendaDateStr]) appData.events[selectedAgendaDateStr] = [];
-      appData.events[selectedAgendaDateStr].push({ title, time, duration });
+      
+      if (idx > -1) appData.events[selectedAgendaDateStr][idx] = { title, time, duration };
+      else appData.events[selectedAgendaDateStr].push({ title, time, duration });
 
-      saveStorage('vr_events', appData.events);
+      saveToFirestore();
       closeModal('modal-add-event');
-      document.getElementById('event-title').value = '';
       renderAgendaCalendar();
-      loadHomeScreen();
     }
 
     function deleteEvent(idx) {
       appData.events[selectedAgendaDateStr].splice(idx, 1);
-      saveStorage('vr_events', appData.events);
+      saveToFirestore();
       renderAgendaCalendar();
-      loadHomeScreen();
     }
 
     function changeMonth(type, dir) {
@@ -1264,7 +1143,7 @@
         if (currentAgendaMonth < 0) { currentAgendaMonth = 11; currentAgendaYear--; }
         if (currentAgendaMonth > 11) { currentAgendaMonth = 0; currentAgendaYear++; }
         renderAgendaCalendar();
-      } else if (type === 'workout') {
+      } else {
         currentWorkoutMonth += dir;
         if (currentWorkoutMonth < 0) { currentWorkoutMonth = 11; currentWorkoutYear--; }
         if (currentWorkoutMonth > 11) { currentWorkoutMonth = 0; currentWorkoutYear++; }
@@ -1272,47 +1151,27 @@
       }
     }
 
-    /* ==========================================================================
-       LÓGICA DA ABA TREINOS (COM CHECKLIST INDIVIDUAL DE EXERCÍCIOS)
-       ========================================================================== */
+    /* TREINOS EDITÁVEIS/MARCÁVEIS */
     function loadWorkoutDetails() {
       const dayIdx = document.getElementById('workout-day-select').value;
       const workout = workoutsData[dayIdx];
       const container = document.getElementById('workout-display-container');
 
-      if (workout.isRest) {
-        container.innerHTML = `
-          <div class="card-rest">
-            <i class="fa-solid fa-bed"></i>
-            <h4 style="color:var(--primary); font-size:16px;">${workout.title}</h4>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">${workout.desc}</p>
-            <div style="text-align:left;">
-              ${workout.exercises.map((ex, idx) => renderExerciseChecklistItem(dayIdx, idx, ex)).join('')}
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div style="margin-bottom:10px;">
-            <strong style="color:var(--primary); font-size:15px;">${workout.title}</strong>
-            <p style="font-size:12px; color:var(--text-muted);">${workout.desc}</p>
-          </div>
-          <div>
-            ${workout.exercises.map((ex, idx) => renderExerciseChecklistItem(dayIdx, idx, ex)).join('')}
-          </div>
-        `;
-      }
+      container.innerHTML = `
+        <div style="margin-bottom:10px;">
+          <strong style="color:var(--primary); font-size:15px;">${workout.title}</strong>
+          <p style="font-size:12px; color:var(--text-muted);">${workout.desc}</p>
+        </div>
+        <div>${workout.exercises.map((ex, idx) => renderExerciseChecklistItem(dayIdx, idx, ex)).join('')}</div>
+      `;
     }
 
     function renderExerciseChecklistItem(dayIdx, exIdx, exName) {
       const key = `${selectedWorkoutDateStr}_day${dayIdx}_ex${exIdx}`;
       const isDone = appData.workoutChecklist[key] || false;
-
       return `
         <div class="exercise-check-item ${isDone ? 'done' : ''}" onclick="toggleExerciseCheck('${key}')">
-          <div class="custom-checkbox">
-            ${isDone ? '<i class="fa-solid fa-check"></i>' : ''}
-          </div>
+          <div class="custom-checkbox">${isDone ? '<i class="fa-solid fa-check"></i>' : ''}</div>
           <span style="font-size:13px; color:var(--text-dark);">${exName}</span>
         </div>
       `;
@@ -1320,304 +1179,183 @@
 
     function toggleExerciseCheck(key) {
       appData.workoutChecklist[key] = !appData.workoutChecklist[key];
-      saveStorage('vr_workout_checklist', appData.workoutChecklist);
+      saveToFirestore();
       loadWorkoutDetails();
     }
 
     function renderWorkoutCalendar() {
       document.getElementById('workout-month-year').innerText = `${monthNames[currentWorkoutMonth]} ${currentWorkoutYear}`;
-      const grid = document.getElementById('workout-calendar-grid');
-      grid.innerHTML = '';
-
+      const grid = document.getElementById('workout-calendar-grid'); grid.innerHTML = '';
       const firstDay = new Date(currentWorkoutYear, currentWorkoutMonth, 1).getDay();
       const daysInMonth = new Date(currentWorkoutYear, currentWorkoutMonth + 1, 0).getDate();
 
       for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
 
       for (let day = 1; day <= daysInMonth; day++) {
-        const cell = document.createElement('div');
-        cell.className = 'cal-cell';
-        cell.innerText = day;
-
+        const cell = document.createElement('div'); cell.className = 'cal-cell'; cell.innerText = day;
         const dateStr = `${currentWorkoutYear}-${String(currentWorkoutMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
         if (dateStr === selectedWorkoutDateStr) cell.classList.add('selected');
         if (appData.completedWorkouts.includes(dateStr)) {
-          cell.style.background = '#E8F5E9';
-          cell.style.color = '#2E7D32';
-          cell.style.fontWeight = 'bold';
+          cell.style.background = '#E8F5E9'; cell.style.color = '#2E7D32'; cell.style.fontWeight = 'bold';
         }
-
         cell.onclick = () => {
           selectedWorkoutDateStr = dateStr;
-          const dateObj = new Date(currentWorkoutYear, currentWorkoutMonth, day);
-          let jsDay = dateObj.getDay();
-          let convertedDay = jsDay === 0 ? 6 : jsDay - 1;
-          document.getElementById('workout-day-select').value = convertedDay;
-          loadWorkoutDetails();
-          renderWorkoutCalendar();
+          let convertedDay = new Date(currentWorkoutYear, currentWorkoutMonth, day).getDay();
+          document.getElementById('workout-day-select').value = convertedDay === 0 ? 6 : convertedDay - 1;
+          loadWorkoutDetails(); renderWorkoutCalendar();
         };
-
         grid.appendChild(cell);
       }
 
       const btn = document.getElementById('btn-toggle-workout');
       if (appData.completedWorkouts.includes(selectedWorkoutDateStr)) {
-        btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Concluído! (Clique para desmarcar)';
-        btn.style.background = 'var(--success)';
+        btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Desmarcar Treino';
+        btn.style.background = 'var(--danger)';
       } else {
         btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Marcar Treino Concluído';
         btn.style.background = 'linear-gradient(135deg, var(--primary-light), var(--primary))';
       }
-
       calculateWorkoutStreak();
     }
 
     function toggleWorkoutCompletion() {
       const idx = appData.completedWorkouts.indexOf(selectedWorkoutDateStr);
-      if (idx > -1) {
-        appData.completedWorkouts.splice(idx, 1);
-      } else {
-        appData.completedWorkouts.push(selectedWorkoutDateStr);
-      }
-      saveStorage('vr_workouts', appData.completedWorkouts);
+      if (idx > -1) appData.completedWorkouts.splice(idx, 1);
+      else appData.completedWorkouts.push(selectedWorkoutDateStr);
+      saveToFirestore();
       renderWorkoutCalendar();
     }
 
     function calculateWorkoutStreak() {
       const sorted = [...appData.completedWorkouts].sort();
-      let currentStreak = sorted.length > 0 ? 1 : 0;
-      let maxStreak = currentStreak;
-
+      let currentStreak = sorted.length > 0 ? 1 : 0; let maxStreak = currentStreak;
       for (let i = 1; i < sorted.length; i++) {
-        const prev = new Date(sorted[i-1]);
-        const curr = new Date(sorted[i]);
-        const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) currentStreak++;
-        else if (diffDays > 1) currentStreak = 1;
-
+        const diff = Math.round((new Date(sorted[i]) - new Date(sorted[i-1])) / (1000 * 60 * 60 * 24));
+        if (diff === 1) currentStreak++; else if (diff > 1) currentStreak = 1;
         if (currentStreak > maxStreak) maxStreak = currentStreak;
       }
-
       document.getElementById('workout-streak').innerText = `${currentStreak} 🔥`;
       document.getElementById('workout-record').innerText = `${maxStreak} 🏆`;
     }
 
-    /* ==========================================================================
-       LÓGICA DA ABA ESPIRITUAL
-       ========================================================================== */
+    /* ESPIRITUAL */
     function loadRosaryTab() {
-      const todayJS = new Date().getDay();
-      let convertedDay = todayJS === 0 ? 6 : todayJS - 1;
-      const todayMystery = mysteriesData[convertedDay];
-
-      document.getElementById('rosary-day-title').innerText = todayMystery.name;
-      document.getElementById('rosary-subtitle').innerText = `Mistérios a contemplar hoje`;
-
-      renderRosaryMysteryCards(todayMystery);
+      let convertedDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+      const mystery = mysteriesData[convertedDay];
+      document.getElementById('rosary-day-title').innerText = mystery.name;
+      renderRosaryMysteryCards(mystery);
       renderRosaryStats();
     }
 
     function renderRosaryMysteryCards(mysteryObj) {
-      const container = document.getElementById('mysteries-cards-container');
-      container.innerHTML = '';
-
+      const container = document.getElementById('mysteries-cards-container'); container.innerHTML = '';
       const todayStr = new Date().toISOString().split('T')[0];
       const completedList = appData.rosaryProgress[todayStr] || [];
 
       mysteryObj.items.forEach((mText, idx) => {
         const isDone = completedList.includes(idx);
-        const card = document.createElement('div');
-        card.className = 'item-card';
-        card.style.marginBottom = '10px';
+        const card = document.createElement('div'); card.className = 'item-card';
         card.style.border = isDone ? '1px solid var(--success)' : '1px solid var(--border-color)';
-
         card.innerHTML = `
-          <div style="flex:1;">
-            <strong style="color:var(--primary); font-size:13px;">${idx + 1}º Mistério</strong>
-            <p style="font-size:13px; color:var(--text-dark);">${mText.replace(/^\d+\.\s*/, '')}</p>
-          </div>
+          <div><strong style="color:var(--primary); font-size:13px;">${idx + 1}º Mistério</strong><p style="font-size:13px;">${mText.replace(/^\d+\.\s*/, '')}</p></div>
           <button style="border:none; background:none; font-size:20px; color:${isDone ? 'var(--success)' : '#CCC'}; cursor:pointer;" onclick="toggleMysteryDone(${idx})">
             <i class="fa-solid ${isDone ? 'fa-circle-check' : 'fa-circle'}"></i>
-          </button>
-        `;
+          </button>`;
         container.appendChild(card);
       });
-
-      const progressPercent = (completedList.length / 5) * 100;
-      document.getElementById('rosary-progress-bar').style.width = `${progressPercent}%`;
-      document.getElementById('rosary-progress-badge').innerText = `${completedList.length}/5 (${progressPercent}%)`;
-
-      if (completedList.length === 5) {
-        registerRosaryCompletion(todayStr, mysteryObj.name);
-      }
+      document.getElementById('rosary-progress-badge').innerText = `${completedList.length}/5 (${(completedList.length/5)*100}%)`;
     }
 
     function toggleMysteryDone(idx) {
       const todayStr = new Date().toISOString().split('T')[0];
       if (!appData.rosaryProgress[todayStr]) appData.rosaryProgress[todayStr] = [];
-
-      const list = appData.rosaryProgress[todayStr];
-      const existIdx = list.indexOf(idx);
-
-      if (existIdx > -1) list.splice(existIdx, 1);
-      else list.push(idx);
-
-      saveStorage('vr_rosary_progress', appData.rosaryProgress);
+      const list = appData.rosaryProgress[todayStr]; const existIdx = list.indexOf(idx);
+      if (existIdx > -1) list.splice(existIdx, 1); else list.push(idx);
+      saveToFirestore();
       loadRosaryTab();
-    }
-
-    function registerRosaryCompletion(dateStr, mysteryName) {
-      const intention = document.getElementById('rosary-intention-input').value || 'Sem intenção informada';
-      const exists = appData.rosaryHistory.some(h => h.date === dateStr);
-
-      if (!exists) {
-        appData.rosaryHistory.push({ date: dateStr, mystery: mysteryName, intention });
-        saveStorage('vr_rosary_history', appData.rosaryHistory);
-        renderRosaryStats();
-      }
     }
 
     function renderRosaryStats() {
       document.getElementById('rosary-total-count').innerText = appData.rosaryHistory.length;
       document.getElementById('rosary-streak').innerText = `${appData.rosaryHistory.length} 🔥`;
-
-      const listContainer = document.getElementById('rosary-history-list');
-      listContainer.innerHTML = '';
-
-      if (appData.rosaryHistory.length === 0) {
-        listContainer.innerHTML = '<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">Nenhuma oração registrada ainda.</p>';
-        return;
-      }
-
+      const container = document.getElementById('rosary-history-list'); container.innerHTML = '';
       [...appData.rosaryHistory].reverse().forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'item-card';
-        item.innerHTML = `
-          <div>
-            <strong style="color:var(--primary); font-size:12px;">${h.date} — ${h.mystery}</strong>
-            <div style="font-size:11px; color:var(--text-muted);">🙏 ${h.intention}</div>
-          </div>
-          <span style="color:var(--success); font-weight:bold; font-size:12px;">✓ Concluído</span>
-        `;
-        listContainer.appendChild(item);
+        container.innerHTML += `<div class="item-card"><div><strong>${h.date} — ${h.mystery}</strong><div style="font-size:11px;">🙏 ${h.intention}</div></div><span style="color:var(--success); font-weight:bold;">✓ Concluído</span></div>`;
       });
     }
 
-    function startRosaryMode() {
-      currentGuidedStep = 0;
-      updateGuidedModal();
-      openModal('modal-rosary-guided');
-    }
-
+    function startRosaryMode() { currentGuidedStep = 0; updateGuidedModal(); openModal('modal-rosary-guided'); }
     function updateGuidedModal() {
-      const todayJS = new Date().getDay();
-      let convertedDay = todayJS === 0 ? 6 : todayJS - 1;
-      const todayMystery = mysteriesData[convertedDay];
-
+      let convertedDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
       document.getElementById('guided-mystery-step').innerText = `Mistério ${currentGuidedStep + 1} de 5`;
       document.getElementById('guided-mystery-title').innerText = `${currentGuidedStep + 1}º Mistério`;
-      document.getElementById('guided-mystery-desc').innerText = todayMystery.items[currentGuidedStep];
+      document.getElementById('guided-mystery-desc').innerText = mysteriesData[convertedDay].items[currentGuidedStep];
     }
-
     function navigateGuidedMystery(dir) {
       currentGuidedStep += dir;
       if (currentGuidedStep < 0) currentGuidedStep = 0;
-      if (currentGuidedStep > 4) {
-        closeModal('modal-rosary-guided');
-        alert("🙏 Parabéns, você concluiu o Santo Terço de hoje!");
-        return;
-      }
+      if (currentGuidedStep > 4) { closeModal('modal-rosary-guided'); alert("🙏 Terço de hoje concluído!"); return; }
       updateGuidedModal();
     }
 
-    /* ==========================================================================
-       LÓGICA DA ABA FINANÇAS
-       ========================================================================== */
+    /* FINANÇAS TOTALMENTE EDITÁVEIS */
     function loadFinanceData() {
       currentFinanceMonth = document.getElementById('finance-month-select').value;
-      const monthKey = `2026-${currentFinanceMonth}`;
-
-      if (!appData.finances[monthKey]) {
-        appData.finances[monthKey] = {
-          inAdiantamento: 1700,
-          inSalario: 2400,
-          expenses: [
-            { name: "Internet Móvel", amount: 100 },
-            { name: "Internet Residencial", amount: 120 },
-            { name: "Cartão de Crédito", amount: 800 }
-          ]
-        };
+      const key = `2026-${currentFinanceMonth}`;
+      if (!appData.finances[key]) {
+        appData.finances[key] = { inAdiantamento: 1700, inSalario: 2400, expenses: [{ name: "Internet Móvel", amount: 100 }, { name: "Internet Residencial", amount: 120 }, { name: "Cartão de Crédito", amount: 800 }] };
       }
-
-      const data = appData.finances[monthKey];
-      document.getElementById('fin-in-adiantamento').value = data.inAdiantamento;
-      document.getElementById('fin-in-salario').value = data.inSalario;
-
-      renderExpensesList(data.expenses);
+      document.getElementById('fin-in-adiantamento').value = appData.finances[key].inAdiantamento;
+      document.getElementById('fin-in-salario').value = appData.finances[key].inSalario;
+      renderExpensesList(appData.finances[key].expenses);
       calculateFinanceTotals();
     }
 
     function renderExpensesList(expenses) {
-      const container = document.getElementById('finance-expenses-list');
-      container.innerHTML = '';
-
+      const container = document.getElementById('finance-expenses-list'); container.innerHTML = '';
       expenses.forEach((exp, idx) => {
-        const item = document.createElement('div');
-        item.className = 'item-card';
-        item.innerHTML = `
-          <div><strong>${exp.name}</strong></div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="number" class="form-control" style="width:90px; padding:6px; font-size:12px;" value="${exp.amount}" onchange="updateExpenseAmount(${idx}, this.value)" />
-            <button style="border:none; background:none; color:#D32F2F; cursor:pointer;" onclick="deleteExpense(${idx})"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        `;
-        container.appendChild(item);
+        container.innerHTML += `
+          <div class="item-card">
+            <div><strong>${exp.name}</strong></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="number" class="form-control" style="width:90px; padding:6px; font-size:12px;" value="${exp.amount}" onchange="updateExpenseAmount(${idx}, this.value)" />
+              <button style="border:none; background:none; color:var(--danger); cursor:pointer;" onclick="deleteExpense(${idx})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>`;
       });
     }
 
     function updateExpenseAmount(idx, val) {
-      const monthKey = `2026-${currentFinanceMonth}`;
-      appData.finances[monthKey].expenses[idx].amount = parseFloat(val) || 0;
+      appData.finances[`2026-${currentFinanceMonth}`].expenses[idx].amount = parseFloat(val) || 0;
       saveFinanceData();
     }
 
     function deleteExpense(idx) {
-      const monthKey = `2026-${currentFinanceMonth}`;
-      appData.finances[monthKey].expenses.splice(idx, 1);
+      appData.finances[`2026-${currentFinanceMonth}`].expenses.splice(idx, 1);
       saveFinanceData();
-      renderExpensesList(appData.finances[monthKey].expenses);
+      renderExpensesList(appData.finances[`2026-${currentFinanceMonth}`].expenses);
     }
 
     function saveNewExpense(e) {
       e.preventDefault();
       const name = document.getElementById('exp-name').value;
       const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
-
-      const monthKey = `2026-${currentFinanceMonth}`;
-      appData.finances[monthKey].expenses.push({ name, amount });
-
+      appData.finances[`2026-${currentFinanceMonth}`].expenses.push({ name, amount });
       saveFinanceData();
       closeModal('modal-add-expense');
-      document.getElementById('exp-name').value = '';
-      document.getElementById('exp-amount').value = '';
-      renderExpensesList(appData.finances[monthKey].expenses);
+      renderExpensesList(appData.finances[`2026-${currentFinanceMonth}`].expenses);
     }
 
     function saveFinanceData() {
-      const monthKey = `2026-${currentFinanceMonth}`;
-      appData.finances[monthKey].inAdiantamento = parseFloat(document.getElementById('fin-in-adiantamento').value) || 0;
-      appData.finances[monthKey].inSalario = parseFloat(document.getElementById('fin-in-salario').value) || 0;
-
-      saveStorage('vr_finances', appData.finances);
+      const key = `2026-${currentFinanceMonth}`;
+      appData.finances[key].inAdiantamento = parseFloat(document.getElementById('fin-in-adiantamento').value) || 0;
+      appData.finances[key].inSalario = parseFloat(document.getElementById('fin-in-salario').value) || 0;
+      saveToFirestore();
       calculateFinanceTotals();
     }
 
     function calculateFinanceTotals() {
-      const monthKey = `2026-${currentFinanceMonth}`;
-      const data = appData.finances[monthKey];
-
+      const data = appData.finances[`2026-${currentFinanceMonth}`];
       const totalIn = data.inAdiantamento + data.inSalario;
       const totalOut = data.expenses.reduce((acc, cur) => acc + cur.amount, 0);
       const balance = totalIn - totalOut;
@@ -1636,19 +1374,25 @@
       financeChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Sobra Líquida', 'Total de Gastos'],
-          datasets: [{
-            data: [Math.max(0, totalIn - totalOut), totalOut],
-            backgroundColor: ['#8B0046', '#E0D0D8'],
-            borderWidth: 0
-          }]
+          labels: ['Sobra Líquida', 'Gastos'],
+          datasets: [{ data: [Math.max(0, totalIn - totalOut), totalOut], backgroundColor: ['#8B0046', '#E0D0D8'], borderWidth: 0 }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom' } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
       });
+    }
+
+    function renderQuickDateSummary() {
+      const dateVal = document.getElementById('quick-date-picker').value;
+      if (!dateVal) return;
+      const [year, month, day] = dateVal.split('-').map(Number);
+      let convertedDay = new Date(year, month - 1, day).getDay();
+      convertedDay = convertedDay === 0 ? 6 : convertedDay - 1;
+
+      document.getElementById('quick-summary-content').innerHTML = `
+        <div class="card"><div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino</div><strong>${workoutsData[convertedDay].title}</strong></div>
+        <div class="card"><div class="section-title"><i class="fa-solid fa-cross"></i> Terço</div><strong>${mysteriesData[convertedDay].name}</strong></div>
+        <div class="card"><div class="section-title"><i class="fa-regular fa-clock"></i> Compromissos</div>${(appData.events[dateVal]||[]).map(e => `<div class="item-card"><strong>${e.title} (${e.time})</strong></div>`).join('') || '<p style="font-size:12px;">Sem compromissos.</p>'}</div>
+      `;
     }
   </script>
 </body>
