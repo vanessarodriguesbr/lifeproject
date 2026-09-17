@@ -32,15 +32,15 @@
       --primary-dark: #660033;
       --primary-light: #A30052;
       --accent: #FFB3D9;
-      --bg-app: #FAF7F8;
+      --bg-app: #FAF6F8;
       --bg-card: #FFFFFF;
       --text-dark: #2B2226;
-      --text-muted: #7A6B72;
-      --border-color: #F0E6EA;
+      --text-muted: #8A7A82;
+      --border-color: #F3E8ED;
       --success: #2E7D32;
       --danger: #D32F2F;
-      --shadow: 0 8px 24px rgba(139, 0, 70, 0.08);
-      --radius: 18px;
+      --shadow: 0 4px 20px rgba(139, 0, 70, 0.04);
+      --radius: 20px;
     }
 
     body.dark-theme {
@@ -49,7 +49,7 @@
       --text-dark: #F0E6EA;
       --text-muted: #A09098;
       --border-color: #2D2529;
-      --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
     * {
@@ -105,7 +105,7 @@
     .auth-logo h1 { font-family: 'Great Vibes', cursive; font-size: 42px; color: var(--primary); }
 
     .app-header {
-      padding: 16px 20px;
+      padding: 14px 20px;
       background: var(--bg-card);
       display: flex;
       justify-content: space-between;
@@ -118,29 +118,29 @@
     .header-controls { display: flex; align-items: center; gap: 8px; }
 
     .header-icon-btn {
-      width: 38px; height: 38px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       background: var(--bg-app);
       color: var(--primary);
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       border: 1px solid var(--border-color);
       cursor: pointer;
     }
 
     .profile-btn {
-      width: 40px; height: 40px;
+      width: 38px; height: 38px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--primary-light), var(--primary));
       color: white;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 15px;
+      font-weight: 700; font-size: 14px;
       border: 2px solid #FFF;
-      box-shadow: 0 4px 12px rgba(139, 0, 70, 0.25);
+      box-shadow: 0 4px 12px rgba(139, 0, 70, 0.2);
       cursor: pointer;
     }
 
-    .app-content { flex: 1; overflow-y: auto; padding: 18px; padding-bottom: 90px; }
+    .app-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
     .tab-view { display: none; animation: fadeIn 0.25s ease-in-out; }
     .tab-view.active { display: block; }
 
@@ -172,17 +172,94 @@
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
       box-shadow: var(--shadow);
       border: 1px solid var(--border-color);
     }
 
     .section-title {
       color: var(--primary);
-      font-size: 17px; font-weight: 700;
-      margin-bottom: 14px;
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 10px;
       display: flex; align-items: center; gap: 8px;
+    }
+
+    /* REFINAMENTO DESIGN MINIMALISTA CLEAN GIRL (CTAs DISCRETOS) */
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .btn-link-action {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-link-action:active { opacity: 0.6; }
+
+    /* DASHBOARD GRID DE ACESSO RÁPIDO */
+    .quick-access-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-card-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease;
+    }
+
+    .quick-card-btn:active { transform: scale(0.97); }
+
+    .quick-card-btn i {
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    .quick-card-btn span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-app);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill-home {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-light), var(--primary));
+      width: 0%;
+      transition: width 0.4s ease;
     }
 
     .modal-overlay {
@@ -261,14 +338,14 @@
     .exercise-check-item.done .custom-checkbox { background: var(--primary); }
 
     .badge {
-      display: inline-block; padding: 4px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 700; background: #FDF0F5; color: var(--primary);
+      display: inline-block; padding: 3px 8px; border-radius: 12px;
+      font-size: 10px; font-weight: 700; background: #FDF0F5; color: var(--primary);
     }
 
     .item-card {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px; background: var(--bg-app); border-radius: 12px;
-      margin-bottom: 8px; color: var(--text-dark);
+      padding: 10px 12px; background: var(--bg-app); border-radius: 12px;
+      margin-bottom: 6px; color: var(--text-dark);
     }
 
     .accordion-item { border: 1px solid var(--border-color); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
@@ -330,41 +407,90 @@
 
     <main class="app-content">
 
-      <!-- ABA #0: INÍCIO -->
+      <!-- ABA #0: INÍCIO (REFINADA - DASHBOARD CENTRAL) -->
       <section id="tab-inicio" class="tab-view active">
-        <div class="card">
+        
+        <!-- CARD 1: VISÃO GERAL DO DIA + PROGRESSO -->
+        <div class="card" style="padding:14px 16px;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
               <span class="badge" id="home-today-date">Hoje</span>
-              <h2 style="color:var(--primary); font-size:20px; font-weight:800; margin-top:6px;">Visão Geral do Dia</h2>
+              <h2 style="color:var(--text-dark); font-size:16px; font-weight:800; margin-top:4px;">Visão Geral do Dia</h2>
             </div>
-            <i class="fa-solid fa-sparkles" style="font-size:24px; color:var(--primary);"></i>
+            <span style="font-size:12px; font-weight:800; color:var(--primary);" id="home-progress-percent">0%</span>
+          </div>
+
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill-home" id="home-progress-bar"></div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:10px; color:var(--text-muted); font-weight:600;">
+            <span id="home-indicator-workout"><i class="fa-solid fa-dumbbell"></i> Treino</span>
+            <span id="home-indicator-rosary"><i class="fa-solid fa-cross"></i> Oração</span>
+            <span id="home-indicator-events"><i class="fa-regular fa-clock"></i> Compromissos</span>
           </div>
         </div>
 
-        <div class="card">
-          <div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino de Hoje</div>
-          <div id="home-workout-summary" style="background:var(--bg-app); padding:12px; border-radius:12px; border-left:4px solid var(--primary); margin-bottom:10px;">
-            <strong style="color:var(--primary);" id="home-workout-title">-</strong>
-            <p style="font-size:12px; color:var(--text-muted);" id="home-workout-desc">-</p>
+        <!-- CARD 2: TREINO DE HOJE (COMPACTO) -->
+        <div class="card" style="padding:12px 14px;">
+          <div class="card-header-row">
+            <span class="section-title" style="margin:0; font-size:13px;"><i class="fa-solid fa-dumbbell"></i> Treino de Hoje</span>
+            <button class="btn-link-action" onclick="switchTab('treinos')">Ver <i class="fa-solid fa-arrow-right-long"></i></button>
           </div>
-          <button class="btn-primary" onclick="switchTab('treinos')" style="padding:10px; font-size:12px;">Ver Treino Completo</button>
+          <div style="font-size:13px; font-weight:700; color:var(--primary);" id="home-workout-title">-</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;" id="home-workout-desc">-</div>
         </div>
 
-        <div class="card">
-          <div class="section-title"><i class="fa-solid fa-cross"></i> Oração do Dia</div>
-          <div id="home-rosary-summary" style="background:var(--bg-app); padding:12px; border-radius:12px; border-left:4px solid var(--primary); margin-bottom:10px;">
-            <strong style="color:var(--primary);" id="home-rosary-title">-</strong>
-            <p style="font-size:12px; color:var(--text-muted);">Contemple os mistérios recomendados para hoje.</p>
+        <!-- CARD 3: ESPIRITUAL DE HOJE (COMPACTO) -->
+        <div class="card" style="padding:12px 14px;">
+          <div class="card-header-row">
+            <span class="section-title" style="margin:0; font-size:13px;"><i class="fa-solid fa-cross"></i> Espiritual</span>
+            <button class="btn-link-action" onclick="switchTab('espiritual')">Ver <i class="fa-solid fa-arrow-right-long"></i></button>
           </div>
-          <button class="btn-primary" onclick="switchTab('espiritual')" style="padding:10px; font-size:12px;">Ir para Espiritual</button>
+          <div style="font-size:13px; font-weight:700; color:var(--primary);" id="home-rosary-title">-</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Contemple os mistérios do dia.</div>
         </div>
 
-        <div class="card">
-          <div class="section-title"><i class="fa-regular fa-clock"></i> Compromissos de Hoje</div>
+        <!-- CARD 4: AGENDA DE HOJE (COMPACTO) -->
+        <div class="card" style="padding:12px 14px;">
+          <div class="card-header-row">
+            <span class="section-title" style="margin:0; font-size:13px;"><i class="fa-regular fa-clock"></i> Agenda do Dia</span>
+            <button class="btn-link-action" onclick="switchTab('agenda')">Ver <i class="fa-solid fa-arrow-right-long"></i></button>
+          </div>
           <div id="home-events-summary"></div>
-          <button class="btn-primary" onclick="switchTab('agenda')" style="padding:10px; font-size:12px; margin-top:8px;">Abrir Agenda</button>
         </div>
+
+        <!-- SEÇÃO: ACESSO RÁPIDO (CENTRAL DE MÓDULOS) -->
+        <div style="margin-top:14px;">
+          <span style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Acesso Rápido</span>
+          <div class="quick-access-grid">
+            <div class="quick-card-btn" onclick="switchTab('agenda')">
+              <i class="fa-regular fa-calendar-days"></i>
+              <span>Agenda</span>
+            </div>
+            <div class="quick-card-btn" onclick="switchTab('treinos')">
+              <i class="fa-solid fa-dumbbell"></i>
+              <span>Treinos</span>
+            </div>
+            <div class="quick-card-btn" onclick="switchTab('dieta')">
+              <i class="fa-solid fa-utensils"></i>
+              <span>Dieta</span>
+            </div>
+            <div class="quick-card-btn" onclick="switchTab('espiritual')">
+              <i class="fa-solid fa-cross"></i>
+              <span>Espiritual</span>
+            </div>
+            <div class="quick-card-btn" onclick="switchTab('financas')">
+              <i class="fa-solid fa-wallet"></i>
+              <span>Finanças</span>
+            </div>
+            <div class="quick-card-btn" onclick="openModal('modal-profile')">
+              <i class="fa-solid fa-user-gear"></i>
+              <span>Perfil</span>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <!-- ABA #1: AGENDA -->
@@ -662,7 +788,6 @@
       </div>
     </div>
 
-    <!-- MODAL: ADICIONAR OUTRO GANHO -->
     <div id="modal-add-income" class="modal-overlay">
       <div class="modal-card">
         <div class="modal-header">
@@ -826,6 +951,7 @@
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     function toggleAccordion(headerEl) { headerEl.parentElement.classList.toggle('active'); }
 
+    /* LÓGICA DA HOME COMPACTA & CÁLCULO DE PROGRESSO DIÁRIO */
     function loadHomeScreen() {
       const todayDate = new Date();
       const todayStr = todayDate.toISOString().split('T')[0];
@@ -838,9 +964,44 @@
 
       const events = appData.events[todayStr] || [];
       const container = document.getElementById('home-events-summary');
-      container.innerHTML = events.length === 0 
-        ? '<p style="font-size:12px; color:var(--text-muted);">Nenhum compromisso agendado para hoje.</p>' 
-        : events.map(e => `<div class="item-card"><div><strong>${e.title}</strong><div style="font-size:11px;">${e.time} (${e.duration})</div></div></div>`).join('');
+      
+      if (events.length === 0) {
+        container.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">Nenhum compromisso para hoje.</div>';
+      } else {
+        container.innerHTML = events.map(e => `
+          <div style="font-size:11px; font-weight:600; color:var(--text-dark); padding:2px 0;">
+            • ${e.title} <span style="color:var(--text-muted);">(${e.time})</span>
+          </div>
+        `).join('');
+      }
+
+      // Cálculo de Progresso
+      let totalTasks = 2 + (events.length > 0 ? 1 : 0);
+      let doneTasks = 0;
+
+      const workoutDone = appData.completedWorkouts.includes(todayStr);
+      if (workoutDone) {
+        doneTasks++;
+        document.getElementById('home-indicator-workout').style.color = 'var(--success)';
+      } else {
+        document.getElementById('home-indicator-workout').style.color = 'var(--text-muted)';
+      }
+
+      const rosaryProgressList = appData.rosaryProgress[todayStr] || [];
+      if (rosaryProgressList.length === 5) {
+        doneTasks++;
+        document.getElementById('home-indicator-rosary').style.color = 'var(--success)';
+      } else {
+        document.getElementById('home-indicator-rosary').style.color = 'var(--text-muted)';
+      }
+
+      if (events.length > 0) {
+        document.getElementById('home-indicator-events').style.color = 'var(--primary)';
+      }
+
+      const percent = Math.round((doneTasks / totalTasks) * 100);
+      document.getElementById('home-progress-percent').innerText = `${percent}%`;
+      document.getElementById('home-progress-bar').style.width = `${percent}%`;
     }
 
     function renderAgendaCalendar() {
@@ -1136,7 +1297,6 @@
       updateGuidedModal();
     }
 
-    /* FINANÇAS COM INCLUSÃO DE OUTROS GANHOS */
     function loadFinanceData() {
       currentFinanceMonth = document.getElementById('finance-month-select').value;
       const key = `${currentAgendaYear}-${currentFinanceMonth}`;
