@@ -687,6 +687,12 @@
             <span><i class="fa-solid fa-receipt" style="color:var(--danger);"></i> Gastos & Contas</span>
             <button class="badge" onclick="openModal('modal-add-expense')" style="border:none; cursor:pointer;">+ Adicionar</button>
           </div>
+          
+          <div style="display:flex; justify-content:space-between; margin-bottom:12px; background:var(--bg-app); padding:8px 12px; border-radius:10px; font-size:11px; font-weight:700;">
+            <span style="color:var(--success);" id="fin-paid-summary">Pagas: R$ 0,00</span>
+            <span style="color:var(--danger);" id="fin-pending-summary">A Pagar: R$ 0,00</span>
+          </div>
+
           <div id="finance-expenses-list"></div>
         </div>
 
@@ -1307,151 +1313,4 @@
       if (selectEl) currentFinanceMonthKey = selectEl.value;
 
       const key = currentFinanceMonthKey;
-      if (!appData.finances[key]) {
-        appData.finances[key] = { 
-          inAdiantamento: 1700, 
-          inSalario: 2400, 
-          otherIncomes: [],
-          expenses: [{ name: "Internet Móvel", amount: 100 }, { name: "Internet Residencial", amount: 120 }, { name: "Cartão de Crédito", amount: 800 }] 
-        };
-      }
-      if (!appData.finances[key].otherIncomes) appData.finances[key].otherIncomes = [];
-
-      document.getElementById('fin-in-adiantamento').value = appData.finances[key].inAdiantamento;
-      document.getElementById('fin-in-salario').value = appData.finances[key].inSalario;
-      
-      renderOtherIncomesList(appData.finances[key].otherIncomes);
-      renderExpensesList(appData.finances[key].expenses);
-      calculateFinanceTotals();
-    }
-
-    function renderOtherIncomesList(otherIncomes) {
-      const container = document.getElementById('finance-other-incomes-list'); 
-      container.innerHTML = '';
-      otherIncomes.forEach((inc, idx) => {
-        container.innerHTML += `
-          <div class="item-card">
-            <div><strong>${inc.name}</strong></div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="number" class="form-control" style="width:90px; padding:6px; font-size:12px; color:var(--success);" value="${inc.amount}" onchange="updateIncomeAmount(${idx}, this.value)" />
-              <button style="border:none; background:none; color:var(--danger); cursor:pointer;" onclick="deleteIncome(${idx})"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>`;
-      });
-    }
-
-    function updateIncomeAmount(idx, val) {
-      appData.finances[currentFinanceMonthKey].otherIncomes[idx].amount = parseFloat(val) || 0;
-      saveFinanceData();
-    }
-
-    function deleteIncome(idx) {
-      appData.finances[currentFinanceMonthKey].otherIncomes.splice(idx, 1);
-      saveFinanceData();
-      renderOtherIncomesList(appData.finances[currentFinanceMonthKey].otherIncomes);
-    }
-
-    function saveNewIncome(e) {
-      e.preventDefault();
-      const name = document.getElementById('inc-name').value;
-      const amount = parseFloat(document.getElementById('inc-amount').value) || 0;
-      if (!appData.finances[currentFinanceMonthKey].otherIncomes) {
-        appData.finances[currentFinanceMonthKey].otherIncomes = [];
-      }
-      appData.finances[currentFinanceMonthKey].otherIncomes.push({ name, amount });
-      saveFinanceData();
-      closeModal('modal-add-income');
-      document.getElementById('inc-name').value = '';
-      document.getElementById('inc-amount').value = '';
-      renderOtherIncomesList(appData.finances[currentFinanceMonthKey].otherIncomes);
-    }
-
-    function renderExpensesList(expenses) {
-      const container = document.getElementById('finance-expenses-list'); container.innerHTML = '';
-      expenses.forEach((exp, idx) => {
-        container.innerHTML += `
-          <div class="item-card">
-            <div><strong>${exp.name}</strong></div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="number" class="form-control" style="width:90px; padding:6px; font-size:12px;" value="${exp.amount}" onchange="updateExpenseAmount(${idx}, this.value)" />
-              <button style="border:none; background:none; color:var(--danger); cursor:pointer;" onclick="deleteExpense(${idx})"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>`;
-      });
-    }
-
-    function updateExpenseAmount(idx, val) {
-      appData.finances[currentFinanceMonthKey].expenses[idx].amount = parseFloat(val) || 0;
-      saveFinanceData();
-    }
-
-    function deleteExpense(idx) {
-      appData.finances[currentFinanceMonthKey].expenses.splice(idx, 1);
-      saveFinanceData();
-      renderExpensesList(appData.finances[currentFinanceMonthKey].expenses);
-    }
-
-    function saveNewExpense(e) {
-      e.preventDefault();
-      const name = document.getElementById('exp-name').value;
-      const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
-      appData.finances[currentFinanceMonthKey].expenses.push({ name, amount });
-      saveFinanceData();
-      closeModal('modal-add-expense');
-      document.getElementById('exp-name').value = '';
-      document.getElementById('exp-amount').value = '';
-      renderExpensesList(appData.finances[currentFinanceMonthKey].expenses);
-    }
-
-    function saveFinanceData() {
-      const key = currentFinanceMonthKey;
-      appData.finances[key].inAdiantamento = parseFloat(document.getElementById('fin-in-adiantamento').value) || 0;
-      appData.finances[key].inSalario = parseFloat(document.getElementById('fin-in-salario').value) || 0;
-      saveToFirestore();
-      calculateFinanceTotals();
-    }
-
-    function calculateFinanceTotals() {
-      const data = appData.finances[currentFinanceMonthKey];
-      const otherIncomesTotal = (data.otherIncomes || []).reduce((acc, cur) => acc + cur.amount, 0);
-      const totalIn = data.inAdiantamento + data.inSalario + otherIncomesTotal;
-      const totalOut = data.expenses.reduce((acc, cur) => acc + cur.amount, 0);
-      const balance = totalIn - totalOut;
-
-      document.getElementById('fin-total-in').innerText = `R$ ${totalIn.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-      document.getElementById('fin-total-out').innerText = `R$ ${totalOut.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-      document.getElementById('fin-total-balance').innerText = `R$ ${balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-
-      renderFinanceChart(totalIn, totalOut);
-    }
-
-    function renderFinanceChart(totalIn, totalOut) {
-      const ctx = document.getElementById('financeChart').getContext('2d');
-      if (financeChartInstance) financeChartInstance.destroy();
-
-      financeChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Sobra Líquida', 'Gastos'],
-          datasets: [{ data: [Math.max(0, totalIn - totalOut), totalOut], backgroundColor: ['#8B0046', '#E0D0D8'], borderWidth: 0 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
-    }
-
-    function renderQuickDateSummary() {
-      const dateVal = document.getElementById('quick-date-picker').value;
-      if (!dateVal) return;
-      const [year, month, day] = dateVal.split('-').map(Number);
-      let convertedDay = new Date(year, month - 1, day).getDay();
-      convertedDay = convertedDay === 0 ? 6 : convertedDay - 1;
-
-      document.getElementById('quick-summary-content').innerHTML = `
-        <div class="card"><div class="section-title"><i class="fa-solid fa-dumbbell"></i> Treino</div><strong>${workoutsData[convertedDay].title}</strong></div>
-        <div class="card"><div class="section-title"><i class="fa-solid fa-cross"></i> Terço</div><strong>${mysteriesData[convertedDay].name}</strong></div>
-        <div class="card"><div class="section-title"><i class="fa-regular fa-clock"></i> Compromissos</div>${(appData.events[dateVal]||[]).map(e => `<div class="item-card"><strong>${e.title} (${e.time})</strong></div>`).join('') || '<p style="font-size:12px;">Sem compromissos.</p>'}</div>
-      `;
-    }
-  </script>
-</body>
-</html>
+      if (!appData.finances
